@@ -22,29 +22,24 @@
     <section class="circle-wrap" aria-hidden="true">
       <svg class="magic-circle" viewBox="-200 -200 400 400">
         <defs>
-          <path id="rune-path" d="M 0,-171 a 171,171 0 1,1 0,342 a 171,171 0 1,1 0,-342" />
+          <path id="rune-path" d="M 0,-167 a 167,167 0 1,1 0,334 a 167,167 0 1,1 0,-334" />
         </defs>
         <g id="ring-outer">
           <circle r="197" class="line thin" />
           <circle r="190" class="line bold" />
-          <circle r="164" class="line bold" />
+          <circle r="160" class="line bold" />
           <g id="ticks"></g>
           <text class="runes">
-            <textPath href="#rune-path" textLength="1060" lengthAdjust="spacing">ᚠᚢᚦᚨᚱᚲ ✦ ᚷᚹᚺᚾᛁᛃ ✦ ᛇᛈᛉᛊᛏᛒ ✦ ᛖᛗᛚᛜᛞᛟ ✦ ᚠᛁᚱᛖ ✦ ᚹᚨᛏᛖᚱ ✦ ᛖᚨᚱᚦ ✦ ᚨᛁᚱ ✦ ᛚᛁᚷᚺᛏ ✦</textPath>
+            <textPath href="#rune-path" textLength="1040" lengthAdjust="spacing">ᚠᚢᚦᚨᚱᚲ ✦ ᚷᚹᚺᚾᛁᛃ ✦ ᛇᛈᛉᛊᛏᛒ ✦ ᛖᛗᛚᛜᛞᛟ ✦ ᚠᛁᚱᛖ ✦ ᚹᚨᛏᛖᚱ ✦ ᛖᚨᚱᚦ ✦ ᚨᛁᚱ ✦ ᛚᛁᚷᚺᛏ ✦</textPath>
           </text>
         </g>
         <g id="ring-inner">
-          <circle r="140" class="line thin dashed" />
-          <polygon class="line" points="0,-140 133.15,-43.26 82.29,113.26 -82.29,113.26 -133.15,-43.26" />
-          <polygon class="line star" points="0,-140 82.29,113.26 -133.15,-43.26 133.15,-43.26 -82.29,113.26" />
-          <circle r="112" class="line bold" />
+          <circle r="154" class="line thin dashed" />
         </g>
       </svg>
 
       <div class="mirror">
         <video id="cam" playsinline muted></video>
-        <div class="mirror-sheen"></div>
-        <div class="cast-symbol"></div>
       </div>
 
       <div id="gems"></div>
@@ -52,8 +47,8 @@
 
     <footer class="guide">
       <div class="status"><span class="dot"></span><span id="status-text">마법 거울을 준비하고 있어요</span></div>
-      <p class="instruction">손을 거울에 비추고, <b>검지를 왼쪽 → 오른쪽</b>으로 휘둘러 주문을 외우세요!</p>
-      <div class="swipe-meter"><div class="fill"></div><span class="spark">✦</span></div>
+      <p class="instruction">거울 앞에서 <b>손을 흔들며</b> 마력을 모아보세요!</p>
+      <div class="swipe-meter"><div class="fill"></div></div>
     </footer>
   </main>
 
@@ -69,14 +64,9 @@
       <ul class="reveal-traits"></ul>
       <p class="reveal-spell"></p>
     </div>
-    <div class="countdown">
-      <div class="bar"></div>
-      <p class="countdown-text">잠시 후 다음 마법사를 감정합니다</p>
-      <p class="next-hint">다음 분은 손을 휘둘러 바로 시작할 수 있어요 ✦</p>
-    </div>
+    <p class="next-hint">✦ 화면을 클릭하면 다음 마법사를 감정합니다 ✦</p>
   </section>
 
-  <canvas id="trail"></canvas>
   <div class="flash"></div>
 
   <aside class="stats" aria-label="오늘 탄생한 마법사"></aside>
@@ -87,7 +77,7 @@
       <h2>마법 적성 감정소</h2>
       <p>버튼을 누르면 카메라가 켜지고 마법 거울이 깨어납니다.<br>카메라 영상은 이 컴퓨터 안에서만 쓰이고 저장되지 않아요.</p>
       <button id="start-btn" type="button">감정소 열기</button>
-      <p class="keys">Space 주문 시전 / 다음 · F 전체화면 · M 소리 켜기/끄기 · Shift+R 통계 초기화</p>
+      <p class="keys">Space 즉시 시전 / 다음 · 클릭 다음 · F 전체화면 · M 소리 켜기/끄기 · Shift+R 통계 초기화</p>
     </div>
   </div>
 

@@ -1,4 +1,4 @@
-// 마법 적성 감정소 — 손 제스처(검지 왼→오 스와이프)로 불/물/흙/공기/빛 속성을 랜덤 감정한다.
+// 마법 적성 감정소 — 손 제스처(거울 앞에서 손을 움직여 마력 충전)로 불/물/흙/공기/빛 속성을 랜덤 감정한다.
 
 const VISION_VERSION = "0.10.14";
 const VISION_SOURCES = [
@@ -13,11 +13,9 @@ const MODEL_SOURCES = [
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
 ];
 
-const SWIPE_DISTANCE = 0.28; // 화면 너비 대비 이동 비율
-const SWIPE_WINDOW_MS = 800; // 이 시간 안에 SWIPE_DISTANCE만큼 움직이면 스와이프
+const CHARGE_MS = 3500; // 손을 가만히 보여줄 때 게이지가 가득 차는 시간 (움직이면 더 빨라짐)
 const CAST_MS = 2600;
-const REVEAL_MS = 15000;
-const NEXT_READY_MS = 6000; // 결과 화면에서 이 시간이 지나면 다음 스와이프 허용
+const RESTART_GRACE_MS = 1200; // 결과 화면을 넘긴 직후 충전을 막는 시간
 const STATS_KEY = "arcanum-stats-v1";
 
 const ELEMENTS = {
@@ -111,12 +109,8 @@ const body = document.body;
 const video = $("#cam");
 const bg = $("#bg");
 const bgCtx = bg.getContext("2d");
-const trailCanvas = $("#trail");
-const trailCtx = trailCanvas.getContext("2d");
 const statusText = $("#status-text");
 const meterFill = $(".swipe-meter .fill");
-const meterSpark = $(".swipe-meter .spark");
-const castSymbol = $(".cast-symbol");
 const flash = $(".flash");
 const ringOuter = $("#ring-outer");
 const ringInner = $("#ring-inner");
@@ -125,16 +119,18 @@ const circleWrap = $(".circle-wrap");
 const state = {
   phase: "intro",
   pick: null,
-  revealAt: 0,
-  revealTimer: 0,
   handOn: false,
   lastHandAt: 0,
+  lastPalm: null,
+  lastTip: null,
+  motion: 0, // 0~1, 손이 얼마나 활발히 움직이는지
+  energy: 0, // 0~1, 마력 게이지
+  chargeBlockedUntil: 0,
   cameraError: false,
   modelReady: false,
+  modelError: false,
   statusKey: "",
 };
-const history = []; // 최근 손끝 위치 {x, y, t} (0~1, 거울 좌표)
-const trail = []; // 화면 좌표 손끝 궤적
 let pointerDown = false;
 let W = 0;
 let H = 0;
@@ -157,7 +153,7 @@ let DPR = 1;
   const gems = $("#gems");
   gems.innerHTML = GEM_ORDER.map((key, i) => {
     const a = ((-90 + i * 72) * Math.PI) / 180;
-    const r = 35; // % (= 140 / 400)
+    const r = 43.5; // % (= 174 / 400), 룬 고리 위
     const lr = 53; // 이름표는 마법진 바깥쪽에
     const el = ELEMENTS[key];
     const pos = (rr) => `left:${50 + rr * Math.cos(a)}%;top:${50 + rr * Math.sin(a)}%`;
@@ -183,9 +179,13 @@ function setTheme(key) {
 const STATUS = {
   loading: "마법 거울을 깨우는 중이에요…",
   noHand: "거울 앞에 손을 들어 보여주세요",
-  hand: "손이 보여요! 검지를 오른쪽으로 힘차게 휘두르세요",
-  error: "카메라를 쓸 수 없어요 · 화면을 왼쪽→오른쪽으로 드래그하거나 스페이스바를 눌러주세요",
-  modelError: "손 인식 마법을 불러오지 못했어요 · 드래그 또는 스페이스바로 시전할 수 있어요",
+  hand: "손이 보여요! 손을 움직여 마력을 모아주세요",
+  read: "손에 깃든 기운을 읽는 중…",
+  analyze: "마력의 흐름을 분석하는 중…",
+  awaken: "속성이 깨어나고 있어요! 조금만 더!",
+  casting: "마법진이 당신의 속성을 판별하고 있어요…",
+  error: "카메라를 쓸 수 없어요 · 화면을 길게 누르거나 스페이스바를 눌러주세요",
+  modelError: "손 인식 마법을 불러오지 못했어요 · 화면을 길게 누르거나 스페이스바로 시전할 수 있어요",
 };
 function setStatus(key) {
   if (state.statusKey === key) return;
@@ -196,14 +196,15 @@ function setStatus(key) {
 function setPhase(p) {
   state.phase = p;
   body.dataset.phase = p;
-  history.length = 0;
+  state.energy = 0;
+  pointerDown = false;
+  body.dataset.charging = "off";
   setProgress(0);
 }
 
 function setProgress(p) {
   meterFill.style.width = `${p * 100}%`;
-  if (body.dataset.hand === "on" || pointerDown) meterSpark.style.left = `${p * 100}%`;
-  else meterSpark.style.left = "";
+  body.style.setProperty("--energy", p.toFixed(3));
 }
 
 // ---------------------------------------------------------------------------
@@ -290,12 +291,10 @@ function randomElementKey() {
 }
 
 function cast() {
-  if (state.phase === "casting") return;
-  clearTimeout(state.revealTimer);
-  body.dataset.nextReady = "off";
-  trail.length = 0;
+  if (state.phase !== "idle") return;
   state.pick = randomElementKey();
   setPhase("casting");
+  setStatus("casting");
   sfx.cast();
 
   const start = performance.now();
@@ -304,23 +303,21 @@ function cast() {
   const step = () => {
     const elapsed = performance.now() - start;
     if (elapsed < CAST_MS - 500) {
-      const key = GEM_ORDER[i++ % GEM_ORDER.length];
-      showCastSymbol(key);
+      showCastElement(GEM_ORDER[i++ % GEM_ORDER.length]);
       sfx.tick();
       delay *= 1.13;
       setTimeout(step, delay);
     } else {
-      showCastSymbol(state.pick);
+      showCastElement(state.pick);
       setTimeout(reveal, Math.max(250, CAST_MS - elapsed));
     }
   };
   step();
 }
 
-function showCastSymbol(key) {
+function showCastElement(key) {
   setTheme(key);
   highlightGem(key);
-  castSymbol.innerHTML = symbolSvg(key);
 }
 
 function reveal() {
@@ -341,69 +338,63 @@ function reveal() {
 
   setPhase("reveal");
   highlightGem(null);
-  state.revealAt = performance.now();
   burst(key);
   sfx.reveal(key);
 
   stats[key] = (stats[key] || 0) + 1;
   saveStats(stats);
   renderStats();
-
-  state.revealTimer = setTimeout(backToIdle, REVEAL_MS);
 }
 
 function backToIdle() {
-  clearTimeout(state.revealTimer);
-  body.dataset.nextReady = "off";
   document.documentElement.style.setProperty("--c1", "#f5d27a");
   document.documentElement.style.setProperty("--c2", "#fff3c4");
   setPhase("idle");
-}
-
-function canSwipe(now) {
-  if (state.phase === "idle") return true;
-  if (state.phase === "reveal") return now - state.revealAt > NEXT_READY_MS;
-  return false;
+  // 결과 화면을 넘기자마자 같은 손으로 곧바로 다시 충전되지 않도록 잠깐 쉰다
+  state.chargeBlockedUntil = performance.now() + RESTART_GRACE_MS;
 }
 
 // ---------------------------------------------------------------------------
-// 스와이프 판정 (손/마우스 공용)
-function feedPoint(x, y, now) {
-  history.push({ x, y, t: now });
-  while (history.length && now - history[0].t > SWIPE_WINDOW_MS) history.shift();
-
-  trail.push({ x: x * W, y: y * H, t: now });
-  if (state.phase !== "casting" && Math.random() < 0.7) spawnTrailSpark(x * W, y * H);
-
-  if (!canSwipe(now)) {
-    setProgress(0);
-    return;
+// 마력 충전: 손이 보이는 동안(움직이면 더 빠르게) 게이지가 차고, 가득 차면 시전
+function updateCharge(dt, now) {
+  if (state.phase !== "idle") return;
+  const active = (state.handOn || pointerDown) && now >= state.chargeBlockedUntil;
+  if (active) {
+    const rate = 0.7 + Math.min(0.8, state.motion * 1.6);
+    state.energy += (dt * 1000 * rate) / CHARGE_MS;
+  } else {
+    state.energy -= dt * 0.6;
   }
-  const cur = history[history.length - 1];
-  let start = cur;
-  for (const p of history) if (p.x < start.x) start = p;
-  const dx = cur.x - start.x;
-  const dy = Math.abs(cur.y - start.y);
-  setProgress(Math.max(0, Math.min(1, dx / SWIPE_DISTANCE)));
-  if (dx >= SWIPE_DISTANCE && dy < dx * 0.9 && cur.t - start.t > 60) {
-    cast();
+  state.energy = Math.max(0, Math.min(1, state.energy));
+  setProgress(state.energy);
+  body.dataset.charging = state.energy > 0.02 ? "on" : "off";
+
+  if (state.energy > 0.02) {
+    setStatus(state.energy < 0.35 ? "read" : state.energy < 0.7 ? "analyze" : "awaken");
+  } else if (state.cameraError) {
+    setStatus("error");
+  } else if (state.modelError) {
+    setStatus("modelError");
+  } else if (state.modelReady) {
+    setStatus(state.handOn ? "hand" : "noHand");
   }
+
+  if (state.energy >= 1) cast();
 }
 
-window.addEventListener("pointerdown", (e) => {
-  if (state.phase === "intro") return;
-  pointerDown = true;
-  history.length = 0;
-  feedPoint(e.clientX / W, e.clientY / H, performance.now());
+window.addEventListener("pointerdown", () => {
+  if (state.phase === "reveal") {
+    backToIdle();
+    return;
+  }
+  if (state.phase === "idle") pointerDown = true;
 });
 window.addEventListener("pointermove", (e) => {
-  if (!pointerDown) return;
-  feedPoint(e.clientX / W, e.clientY / H, performance.now());
+  if (pointerDown) state.motion = Math.min(1, Math.hypot(e.movementX, e.movementY) / 20);
 });
 window.addEventListener("pointerup", () => {
   pointerDown = false;
-  history.length = 0;
-  setProgress(0);
+  state.motion = 0;
 });
 
 window.addEventListener("keydown", (e) => {
@@ -481,17 +472,15 @@ async function initTracking() {
     console.warn("camera error", err);
     state.cameraError = true;
     body.dataset.camera = "error";
-    setStatus("error");
     return;
   }
   try {
     landmarker = await loadLandmarker();
     state.modelReady = true;
-    setStatus("noHand");
   } catch (err) {
     console.warn("hand model error", err);
+    state.modelError = true;
     body.dataset.camera = "error";
-    setStatus("modelError");
   }
 }
 
@@ -506,20 +495,28 @@ function trackHands(now) {
   }
   const hand = result.landmarks && result.landmarks[0];
   if (hand) {
-    const tip = hand[8]; // 검지 끝
+    const palm = hand[9]; // 손바닥 중앙
+    const tip = hand[8];
+    const dt = Math.max(1, now - state.lastHandAt) / 1000;
+    if (state.lastPalm && now - state.lastHandAt < 300) {
+      // 손바닥 이동 + 손가락 움직임을 합친 '제스처 활발함' (0~1)
+      const move = Math.hypot(palm.x - state.lastPalm.x, palm.y - state.lastPalm.y) + Math.hypot(tip.x - state.lastTip.x, tip.y - state.lastTip.y);
+      const speed = Math.min(1, move / dt / 1.2);
+      state.motion += (speed - state.motion) * 0.3;
+    }
+    state.lastPalm = { x: palm.x, y: palm.y };
+    state.lastTip = { x: tip.x, y: tip.y };
     state.lastHandAt = now;
     if (!state.handOn) {
       state.handOn = true;
       body.dataset.hand = "on";
     }
-    feedPoint(1 - tip.x, tip.y, now); // 거울처럼 좌우 반전
   } else if (state.handOn && now - state.lastHandAt > 400) {
     state.handOn = false;
+    state.motion = 0;
+    state.lastPalm = null;
     body.dataset.hand = "off";
-    history.length = 0;
-    setProgress(0);
   }
-  if (state.modelReady) setStatus(state.handOn ? "hand" : "noHand");
 }
 
 // ---------------------------------------------------------------------------
@@ -532,12 +529,9 @@ function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
   H = window.innerHeight;
-  for (const c of [bg, trailCanvas]) {
-    c.width = W * DPR;
-    c.height = H * DPR;
-  }
+  bg.width = W * DPR;
+  bg.height = H * DPR;
   bgCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  trailCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
   stars.length = 0;
   const n = Math.round((W * H) / 9000);
   for (let i = 0; i < n; i++) {
@@ -564,18 +558,6 @@ function addParticle(p) {
 function circleCenter() {
   const r = circleWrap.getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 };
-}
-
-function spawnTrailSpark(x, y) {
-  addParticle({
-    kind: "spark",
-    x, y,
-    vx: rand(-0.4, 0.4),
-    vy: rand(-0.6, 0.2),
-    life: rand(0.5, 1.1),
-    size: rand(1.5, 3.5),
-    color: pickOne(["#fff3c4", "#f5d27a", "#c9b8ff"]),
-  });
 }
 
 function spawnElement(key, x, y, burstMode = false) {
@@ -726,39 +708,6 @@ function drawStars(ctx, t) {
   ctx.globalAlpha = 1;
 }
 
-function drawTrail(ctx, now) {
-  while (trail.length && now - trail[0].t > 450) trail.shift();
-  if (trail.length < 2) return;
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  for (let i = 1; i < trail.length; i++) {
-    const a = trail[i - 1];
-    const b = trail[i];
-    const k = 1 - (now - b.t) / 450;
-    ctx.strokeStyle = `rgba(245, 210, 122, ${0.5 * k})`;
-    ctx.lineWidth = 18 * k;
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.stroke();
-    ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * k})`;
-    ctx.lineWidth = 5 * k;
-    ctx.stroke();
-  }
-  const tip = trail[trail.length - 1];
-  const g = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 30);
-  g.addColorStop(0, "rgba(255,255,255,0.95)");
-  g.addColorStop(0.3, "rgba(245,210,122,0.6)");
-  g.addColorStop(1, "rgba(245,210,122,0)");
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(tip.x, tip.y, 30, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
 // ---------------------------------------------------------------------------
 // 메인 루프
 let lastT = performance.now();
@@ -772,9 +721,10 @@ function frame(now) {
   const t = now / 1000;
 
   trackHands(now);
+  updateCharge(dt, now);
 
-  // 마법진 회전: 시전 중에는 빠르게
-  const targetSpeed = state.phase === "casting" ? 240 : 6;
+  // 마법진 회전: 마력이 찰수록, 시전 중에는 더 빠르게
+  const targetSpeed = state.phase === "casting" ? 240 : 6 + state.energy * 90;
   spinSpeed += (targetSpeed - spinSpeed) * Math.min(1, dt * 2.5);
   spin = (spin + spinSpeed * dt) % 360;
   ringOuter.setAttribute("transform", `rotate(${spin.toFixed(2)})`);
@@ -788,11 +738,11 @@ function frame(now) {
       spawnElement(state.pick);
       spawnAcc -= 1;
     }
-    if (now - state.revealAt > NEXT_READY_MS && body.dataset.nextReady !== "on") body.dataset.nextReady = "on";
-  } else if (state.phase === "casting") {
+  } else if (state.phase === "casting" || state.energy > 0.02) {
     // 마법진으로 빨려드는 기운
     const c = circleCenter();
-    for (let i = 0; i < 4; i++) {
+    const n = state.phase === "casting" ? 4 : Math.random() < state.energy * 2.5 ? Math.ceil(state.energy * 2) : 0;
+    for (let i = 0; i < n; i++) {
       const a = rand(0, Math.PI * 2);
       const r = c.r * rand(1.1, 1.8);
       const x = c.x + Math.cos(a) * r;
@@ -806,9 +756,6 @@ function frame(now) {
   bgCtx.clearRect(0, 0, W, H);
   drawStars(bgCtx, t);
   drawParticles(bgCtx);
-
-  trailCtx.clearRect(0, 0, W, H);
-  if (state.phase !== "casting") drawTrail(trailCtx, now);
 
   requestAnimationFrame(frame);
 }
