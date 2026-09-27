@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#060912">
+  <title>원소 마법 · micro:bit</title>
+  <style>
+    :root { color-scheme: dark; font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif; --accent: #ff7a2b; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; background: #060912; color: #f6efe8; }
+    body { overflow: hidden; }
+    .scene { position: fixed; inset: 0; will-change: transform; }
+    #gl, #fx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    #gl { background: #060912; }
+    #fx { pointer-events: none; }
+    .veil { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 70%, transparent 38%, rgba(1,2,8,.62) 100%); }
+
+    .top { position: fixed; z-index: 2; left: clamp(16px,3vw,46px); right: clamp(16px,3vw,46px); top: clamp(16px,3vw,38px); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .brand { display: flex; flex-direction: column; gap: 5px; }
+    .eyebrow { font-size: .74rem; letter-spacing: .22em; color: var(--accent); font-weight: 800; transition: color .6s; }
+    h1 { font-size: clamp(1.3rem,2.4vw,2.1rem); line-height: 1.2; margin: 0; letter-spacing: -.04em; font-weight: 750; }
+    .status { border: 1px solid rgba(255,255,255,.16); background: rgba(8,11,22,.66); backdrop-filter: blur(14px); border-radius: 999px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 9px; font-size: .88rem; white-space: nowrap; }
+    .light { width: 8px; height: 8px; border-radius: 50%; background: #8d8c93; flex: none; }
+    .status.connected .light { background: #77e2bf; box-shadow: 0 0 12px #77e2bf; }
+    .status.connecting .light { background: #ffc979; box-shadow: 0 0 12px #ffc979; }
+
+    .caption { position: fixed; z-index: 1; left: 50%; top: 30%; transform: translate(-50%,-50%); pointer-events: none; text-align: center; transition: opacity .5s ease; width: min(92vw, 680px); }
+    .caption.hidden { opacity: 0; }
+    .caption strong { display: block; font-size: clamp(1.45rem,3.3vw,3.2rem); font-weight: 650; letter-spacing: -.05em; text-shadow: 0 4px 30px #020309; }
+    .caption span { display: block; color: #c4bcc6; font-size: clamp(.9rem,1.3vw,1.08rem); margin-top: 13px; line-height: 1.6; }
+
+    .spell { position: fixed; z-index: 1; left: 50%; top: 17%; transform: translateX(-50%); pointer-events: none; text-align: center; width: min(92vw, 760px); opacity: 0; }
+    .spell.show { animation: spell 3.4s ease forwards; }
+    .spell .latin { display: block; font-family: "Cinzel", "Times New Roman", serif; letter-spacing: .5em; font-size: clamp(.8rem,1.2vw,1rem); color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+    .spell .name { display: block; font-size: clamp(1.6rem,3.6vw,3.2rem); font-weight: 800; letter-spacing: -.03em; text-shadow: 0 0 28px var(--accent), 0 3px 20px #000; }
+    .spell .chant { display: block; margin-top: 10px; font-size: clamp(.95rem,1.5vw,1.25rem); color: #efe6dc; text-shadow: 0 2px 14px #000; }
+    @keyframes spell { 0% { opacity: 0; transform: translate(-50%, 14px) scale(.96); filter: blur(6px); } 14% { opacity: 1; transform: translate(-50%, 0) scale(1); filter: blur(0); } 72% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -10px); } }
+
+    .controls { position: fixed; z-index: 3; bottom: clamp(14px,3vh,30px); left: 50%; transform: translateX(-50%); width: min(1060px, calc(100% - 28px)); border: 1px solid rgba(255,255,255,.14); border-radius: 22px; background: rgba(9,12,24,.84); box-shadow: 0 24px 80px #0008; backdrop-filter: blur(22px); padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: opacity .4s; }
+    body.clean .controls, body.clean .top, body.clean .help { opacity: 0; pointer-events: none; }
+    button { appearance: none; border: 1px solid rgba(255,255,255,.2); border-radius: 13px; background: rgba(255,255,255,.06); color: #fff6ee; font: inherit; font-size: .93rem; font-weight: 700; min-height: 46px; padding: 9px 14px; white-space: nowrap; cursor: pointer; transition: transform .16s, background .16s, border-color .16s, box-shadow .2s; }
+    button:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.45); }
+    button:focus-visible, summary:focus-visible { outline: 3px solid #ffd27e; outline-offset: 3px; }
+    button:disabled { opacity: .5; cursor: wait; }
+    #connect { background: #f2e6d8; border-color: #f2e6d8; color: #1a1420; }
+    #connect:hover:not(:disabled) { background: #fff; }
+    .elements { display: flex; gap: 7px; flex-wrap: wrap; }
+    .el { display: inline-flex; align-items: center; gap: 8px; }
+    .el i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; }
+    .el.active { border-color: var(--c); background: color-mix(in srgb, var(--c) 24%, transparent); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 40%, transparent); }
+    .el kbd { font: inherit; font-size: .72rem; opacity: .55; font-weight: 600; }
+    .divider { height: 34px; width: 1px; background: rgba(255,255,255,.16); flex: none; }
+    .readout { margin-left: auto; min-width: 150px; text-align: right; }
+    .readout small { display: block; color: #aea6b4; font-size: .75rem; margin-bottom: 4px; }
+    .readout strong { display: block; font-size: .93rem; font-weight: 700; }
+
+    .help { position: fixed; z-index: 3; top: clamp(78px,8vw,108px); right: clamp(16px,3vw,46px); max-width: min(380px, calc(100vw - 32px)); font-size: .86rem; color: #d3cad4; max-height: calc(100vh - 230px); overflow: auto; }
+    .help summary { cursor: pointer; text-align: right; list-style: none; text-decoration: underline; text-decoration-color: #9d93a3; text-underline-offset: 4px; }
+    .help summary::-webkit-details-marker { display: none; }
+    .help[open] { background: rgba(9,12,24,.95); border: 1px solid #ffffff26; border-radius: 16px; padding: 15px; box-shadow: 0 12px 30px #0009; }
+    .help[open] summary { text-align: left; font-weight: 700; text-decoration: none; }
+    .help p { margin: 10px 0 0; line-height: 1.65; }
+    .help table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .82rem; }
+    .help td { padding: 4px 6px; border-top: 1px solid #ffffff1a; }
+    .help code { font-size: .82rem; color: #ffd391; }
+
+    .message { position: fixed; z-index: 4; left: 50%; transform: translateX(-50%); bottom: 118px; max-width: min(720px,calc(100% - 32px)); background: rgba(28,24,32,.96); color: #fff3e4; border: 1px solid #fdca9c77; border-radius: 12px; padding: 12px 18px; font-size: .9rem; text-align: center; display: none; }
+    .message.show { display: block; }
+
+    @media (max-width: 900px) {
+      .controls { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 12px; }
+      .divider { display: none; }
+      .elements { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .elements button { justify-content: center; padding: 8px 6px; }
+      .el kbd { display: none; }
+      .readout { text-align: center; min-width: 0; margin: 0; }
+      .caption { top: 26%; }
+      .message { bottom: 250px; }
+    }
+    @media (max-height: 560px) { .top { top: 10px; } .help { top: 66px; } .controls { bottom: 8px; padding: 8px; } .caption { top: 26%; } }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <canvas id="gl" aria-label="원소 마법 효과"></canvas>
+    <canvas id="fx" aria-hidden="true"></canvas>
+  </div>
+  <div class="veil"></div>
+
+  <header class="top">
+    <div class="brand"><span class="eyebrow" id="eyebrow">MICRO:BIT · ELEMENTAL MAGIC</span><h1>원소 마법</h1></div>
+    <div id="connectionStatus" class="status" role="status"><span class="light"></span><span id="connectionText">마이크로비트 연결 전</span></div>
+  </header>
+
+  <div id="caption" class="caption"><strong>마법봉을 휘둘러 원소를 깨워요</strong><span>불 · 물 · 빛 · 공기 · 흙<br>아래 버튼이나 숫자 키 1~5로 먼저 시험해 볼 수 있어요</span></div>
+  <div id="spell" class="spell" aria-live="polite"><span class="latin"></span><span class="name"></span><span class="chant"></span></div>
+
+  <details class="help">
+    <summary>마이크로비트 연결 방법</summary>
+    <p><b>받는 마이크로비트</b>(컴퓨터에 USB로 연결): MakeCode에서 라디오 그룹을 <strong>71</strong>로 정하고, <strong>라디오 문자열을 받았을 때 → 받은 문자열을 시리얼 한 줄 쓰기</strong>를 넣으세요.</p>
+    <p><b>마법봉 마이크로비트</b>: 같은 그룹 71에서 아래 문자열 중 하나를 <strong>라디오 문자열 보내기</strong>로 보내면 그 원소 마법이 펼쳐져요.</p>
+    <table>
+      <tr><td><code>FIRE</code> 또는 <code>1</code></td><td>불</td></tr>
+      <tr><td><code>WATER</code> 또는 <code>2</code></td><td>물</td></tr>
+      <tr><td><code>LIGHT</code> 또는 <code>3</code></td><td>빛</td></tr>
+      <tr><td><code>AIR</code> · <code>WIND</code> 또는 <code>4</code></td><td>공기</td></tr>
+      <tr><td><code>EARTH</code> 또는 <code>5</code></td><td>흙</td></tr>
+      <tr><td><code>SPELL</code></td><td>지금 고른 원소를 다시 시전</td></tr>
+      <tr><td><code>STOP</code> 또는 <code>0</code></td><td>마법 끄기</td></tr>
+    </table>
+    <p>Chrome 또는 Edge에서 아래 연결 버튼을 누르고 마이크로비트의 <strong>USB 시리얼 포트</strong>를 선택하세요. 다른 시리얼 모니터(MakeCode 콘솔 등)는 닫아 두세요.</p>
+    <p>키보드: <code>1</code>~<code>5</code> 원소 · <code>Space</code> 다시 시전 · <code>0</code>/<code>Esc</code> 끄기 · <code>F</code> 전체화면 · <code>H</code> 버튼 숨기기</p>
+  </details>
+
+  <div id="message" class="message" role="alert"></div>
+
+  <div class="controls">
+    <button id="connect" type="button">마이크로비트 연결</button>
+    <span class="divider"></span>
+    <div class="elements" id="elementButtons"></div>
+    <div class="readout" aria-live="polite"><small>마지막 명령</small><strong id="lastCommand">명령 대기 중</strong></div>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ───────────────────────── 원소 정의 ─────────────────────────
+  const ELEMENTS = {
+    fire:  { name: '불',   latin: 'IGNIS',  title: '불꽃의 마법',   chant: '“이그니스 플라마 — 타올라라!”',   color: '#ff7a2b', rgb: [255,122,43],  tint: [.30,.07,.012] },
+    water: { name: '물',   latin: 'AQUA',   title: '물결의 마법',   chant: '“아쿠아 룩스 — 흘러라!”',        color: '#3fb4ff', rgb: [63,180,255],  tint: [.015,.10,.30] },
+    light: { name: '빛',   latin: 'LUX',    title: '빛의 마법',     chant: '“룩스 에테르나 — 빛나라!”',      color: '#ffd84d', rgb: [255,216,77],  tint: [.26,.21,.09] },
+    air:   { name: '공기', latin: 'VENTUS', title: '바람의 마법',   chant: '“벤투스 알라 — 날아올라라!”',    color: '#7ef0d6', rgb: [126,240,214], tint: [.04,.17,.17] },
+    earth: { name: '흙',   latin: 'TERRA',  title: '대지의 마법',   chant: '“테라 솔리다 — 일어나라!”',      color: '#a5d36b', rgb: [165,211,107], tint: [.10,.12,.035] },
+  };
+  const ORDER = ['fire', 'water', 'light', 'air', 'earth'];
+  const ALIASES = {
+    FIRE: 'fire', IGNIS: 'fire', '불': 'fire', '1': 'fire',
+    WATER: 'water', AQUA: 'water', '물': 'water', '2': 'water',
+    LIGHT: 'light', LUX: 'light', '빛': 'light', '3': 'light',
+    AIR: 'air', WIND: 'air', VENTUS: 'air', '공기': 'air', '바람': 'air', '4': 'air',
+    EARTH: 'earth', TERRA: 'earth', GROUND: 'earth', '흙': 'earth', '땅': 'earth', '5': 'earth',
+  };
+
+  // ───────────────────────── DOM ─────────────────────────
+  const $ = (id) => document.getElementById(id);
+  const scene = $('scene'), glCanvas = $('gl'), fxCanvas = $('fx'), ctx = fxCanvas.getContext('2d');
+  const connectButton = $('connect'), connectionStatus = $('connectionStatus'), connectionText = $('connectionText');
+  const lastCommand = $('lastCommand'), caption = $('caption'), message = $('message'), spellBox = $('spell'), eyebrow = $('eyebrow');
+  const buttonBox = $('elementButtons');
+  const buttons = {};
+  ORDER.forEach((key, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'el'; b.style.setProperty('--c', ELEMENTS[key].color);
+    b.innerHTML = '<i></i>' + ELEMENTS[key].name + ' <kbd>' + (i + 1) + '</kbd>';
+    b.addEventListener('click', () => command(key.toUpperCase(), 'test'));
+    buttonBox.appendChild(b); buttons[key] = b;
+  });
+  const stopButton = document.createElement('button');
+  stopButton.type = 'button'; stopButton.textContent = '끄기';
+  stopButton.addEventListener('click', () => command('STOP', 'test'));
+  buttonBox.appendChild(stopButton);
+
+  // ───────────────────────── 상태 ─────────────────────────
+  const level = {}, target = {}, growth = {}, burst = {};
+  ORDER.forEach(k => { level[k] = 0; target[k] = 0; growth[k] = 0; burst[k] = 0; });
+  let selected = 'fire', active = null, shake = 0, messageTimer;
+  const circleRGB = ELEMENTS.fire.rgb.slice();
+
+  function showMessage(text) {
+    message.textContent = text; message.classList.add('show');
+    clearTimeout(messageTimer); messageTimer = setTimeout(() => message.classList.remove('show'), 6500);
+  }
+
+  // ───────────────────────── 명령 처리 ─────────────────────────
+  function parse(raw) {
+    const value = String(raw).trim().toUpperCase();
+    if (!value) return null;
+    const tokens = value.split(/[^0-9A-Z가-힣]+/).filter(Boolean);
+    for (const t of tokens) if (ALIASES[t]) return { type: 'cast', element: ALIASES[t] };
+    if (tokens.some(t => t === 'STOP' || t === 'OFF' || t === '0' || t === '끄기')) return { type: 'stop' };
+    if (tokens.some(t => t === 'SPELL' || t === 'CAST' || t === 'GO')) return { type: 'cast', element: selected };
+    return null; // IDLE 등 그 밖의 데이터는 무시
+  }
+  function command(raw, source) {
+    const cmd = parse(raw);
+    if (!cmd) return;
+    const via = source === 'test' ? '버튼 시험' : source === 'key' ? '키보드' : '마이크로비트';
+    if (cmd.type === 'stop') {
+      ORDER.forEach(k => target[k] = 0);
+      active = null;
+      lastCommand.textContent = '마법 끄기 · ' + via;
+      updateButtons();
+      return;
+    }
+    cast(cmd.element);
+    lastCommand.textContent = ELEMENTS[cmd.element].title + ' · ' + via;
+  }
+  function cast(key) {
+    const recast = active === key;
+    selected = key; active = key;
+    ORDER.forEach(k => target[k] = k === key ? 1 : 0);
+    if (!recast) growth[key] = Math.min(growth[key], .15);
+    burst[key] = 1;
+    caption.classList.add('hidden');
+    document.documentElement.style.setProperty('--accent', ELEMENTS[key].color);
+    eyebrow.textContent = 'MICRO:BIT · ' + ELEMENTS[key].latin;
+    const e = ELEMENTS[key];
+    spellBox.querySelector('.latin').textContent = e.latin;
+    spellBox.querySelector('.name').textContent = e.title;
+    spellBox.querySelector('.chant').textContent = e.chant;
+    spellBox.classList.remove('show'); void spellBox.offsetWidth; spellBox.classList.add('show');
+    castBurst(key);
+    updateButtons();
+  }
+  function updateButtons() { ORDER.forEach(k => buttons[k].classList.toggle('active', k === active)); }
+
+  document.addEventListener('keydown', (ev) => {
+    if (ev.target.closest && ev.target.closest('input,textarea')) return;
+    const k = ev.key;
+    if (k >= '1' && k <= '5') command(k, 'key');
+    else if (k === '0' || k === 'Escape') command('STOP', 'key');
+    else if (k === ' ') { ev.preventDefault(); command('SPELL', 'key'); }
+    else if (k === 'f' || k === 'F') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); }
+    else if (k === 'h' || k === 'H') document.body.classList.toggle('clean');
+  });
+
+  // ───────────────────────── Web Serial ─────────────────────────
+  let port = null, reader = null, closing = false, commandBuffer = '';
+  const decoder = new TextDecoder();
+  function setConnection(state, label) {
+    connectionStatus.className = 'status ' + state;
+    connectionText.textContent = label;
+    connectButton.textContent = state === 'connected' ? '연결 해제' : state === 'connecting' ? '연결 중…' : '마이크로비트 연결';
+    connectButton.disabled = state === 'connecting';
+  }
+  function receiveText(chunk) {
+    commandBuffer += decoder.decode(chunk, { stream: true });
+    if (commandBuffer.length > 4096) commandBuffer = commandBuffer.slice(-512);
+    let newline;
+    while ((newline = commandBuffer.indexOf('\n')) !== -1) {
+      const line = commandBuffer.slice(0, newline).replace(/\r/g, '').trim();
+      commandBuffer = commandBuffer.slice(newline + 1);
+      command(line, 'microbit');
+    }
+  }
+  async function connect() {
+    if (port) { await disconnect(); return; }
+    if (!window.isSecureContext || !('serial' in navigator)) {
+      showMessage('Chrome 또는 Edge에서 이 페이지를 HTTPS(또는 localhost)로 열어 주세요. 시험 버튼은 연결 없이 사용할 수 있어요.');
+      return;
+    }
+    const policy = document.permissionsPolicy || document.featurePolicy;
+    if (policy && typeof policy.allowsFeature === 'function' && !policy.allowsFeature('serial')) {
+      showMessage('이 화면에서 시리얼 연결이 차단되어 있어요. 이 사이트 주소를 복사해 Chrome 새 탭의 주소창에서 직접 열어 주세요.');
+      return;
+    }
+    setConnection('connecting', '마이크로비트의 포트를 선택해 주세요');
+    let chosen;
+    try {
+      chosen = await navigator.serial.requestPort();
+      await chosen.open({ baudRate: 115200 });
+      port = chosen; closing = false; commandBuffer = '';
+      setConnection('connected', '마이크로비트 연결됨');
+      readLoop(chosen);
+    } catch (error) {
+      if (chosen && chosen !== port) { try { await chosen.close(); } catch (_) {} }
+      setConnection('', '마이크로비트 연결 전');
+      if (error.name !== 'NotFoundError') {
+        if (error.name === 'SecurityError' || /permissions.policy|feature.policy|disallowed by permissions/i.test(error.message)) {
+          showMessage('이 화면에서 시리얼 연결이 차단되어 있어요. 이 사이트 주소를 복사해 Chrome 새 탭의 주소창에서 직접 열어 주세요.');
+        } else {
+          showMessage('포트를 열지 못했어요. USB 케이블과 다른 시리얼 모니터를 확인해 주세요. (' + error.message + ')');
+        }
+      }
+    }
+  }
+  async function readLoop(currentPort) {
+    try {
+      while (currentPort.readable && !closing) {
+        reader = currentPort.readable.getReader();
+        let ended = false;
+        try {
+          while (!closing) {
+            const result = await reader.read();
+            if (result.done) { ended = true; break; }
+            receiveText(result.value);
+          }
+        } finally { reader.releaseLock(); reader = null; }
+        if (ended) break;
+      }
+    } catch (_) {
+      if (!closing) showMessage('마이크로비트와 연결이 끊어졌어요. USB 케이블을 확인해 주세요.');
+    } finally {
+      try { await currentPort.close(); } catch (_) {}
+      if (port === currentPort) { port = null; closing = false; commandBuffer = ''; setConnection('', '마이크로비트 연결 전'); }
+    }
+  }
+  async function disconnect() {
+    if (!port) return;
+    closing = true;
+    setConnection('connecting', '연결 해제 중…');
+    if (reader) { try { await reader.cancel(); } catch (_) {} }
+    else {
+      const current = port;
+      try { await current.close(); } catch (_) {}
+      if (port === current) { port = null; closing = false; setConnection('', '마이크로비트 연결 전'); }
+    }
+  }
+  connectButton.addEventListener('click', connect);
+  if ('serial' in navigator) navigator.serial.addEventListener('disconnect', (e) => { if (port && e.target === port) showMessage('마이크로비트 USB 연결이 끊어졌어요.'); });
+
+  // ───────────────────────── WebGL 셰이더 ─────────────────────────
+  const VERT = 'attribute vec2 aPos; void main(){ gl_Position = vec4(aPos, 0., 1.); }';
+  const COMMON = `
+    precision highp float;
+    uniform vec2 uRes; uniform vec2 uBase; uniform float uScale;
+    uniform float uTime; uniform float uLevel; uniform float uGrowth; uniform float uBurst;
+    uniform vec3 uTint;
+    float hash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+    vec2 hash2(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973)); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.xx + p3.yz) * p3.zy); }
+    float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.-2.*f);
+      return mix(mix(hash(i), hash(i+vec2(1.,0.)), u.x), mix(hash(i+vec2(0.,1.)), hash(i+vec2(1.,1.)), u.x), u.y); }
+    const mat2 ROT = mat2(1.6, 1.2, -1.2, 1.6);
+    float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 5; i++){ v += a*noise(p); p = ROT*p; a *= .5; } return v; }
+    float fbm3(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 3; i++){ v += a*noise(p); p = ROT*p; a *= .5; } return v; }
+    vec2 P(){ return (gl_FragCoord.xy - uBase) / uScale; }
+    float grow(){ return smoothstep(0., 1., clamp(uGrowth, 0., 1.)); }
+  `;
+
+  // 배경: 밤하늘 + 원소 색의 은은한 기운
+  const BG = `
+    void main(){
+      vec2 uv = gl_FragCoord.xy / uRes; vec2 p = P();
+      vec3 col = mix(vec3(.016,.02,.045), vec3(.006,.009,.024), uv.y);
+      float amb = exp(-pow(p.x/.55, 2.) - pow((p.y-.22)/.5, 2.));
+      col += uTint * amb * uLevel * .9;
+      col += uTint * uBurst * .22 * exp(-dot(p - vec2(0., .25), p - vec2(0., .25)) * 1.5);
+      vec2 cell = floor(gl_FragCoord.xy / (2.5 * uScale / 900.));
+      float s = hash(cell);
+      float tw = .55 + .45 * sin(uTime * (1. + s * 3.) + s * 80.);
+      col += step(.9975, s) * tw * .55 * smoothstep(.15, .9, uv.y);
+      // 지면
+      float ground = smoothstep(.02, -.12, p.y);
+      col = mix(col, vec3(.012,.014,.028), ground * .6);
+      gl_FragColor = vec4(col, 1.);
+    }`;
+
+  // 불: 도메인 워핑된 불꽃 기둥
+  const FIRE = `
+    vec3 ramp(float h){
+      vec3 c = vec3(0.);
+      c = mix(c, vec3(.45,.02,.01), smoothstep(.0, .18, h));
+      c = mix(c, vec3(.95,.22,.02), smoothstep(.12, .42, h));
+      c = mix(c, vec3(1.,.58,.08), smoothstep(.38, .66, h));
+      c = mix(c, vec3(1.,.86,.36), smoothstep(.62, .86, h));
+      c = mix(c, vec3(1.,.98,.86), smoothstep(.85, 1., h));
+      return c;
+    }
+    float flame(vec2 p, float H, float w0, float t, float seed){
+      float y = p.y / H;
+      float sway = (fbm3(vec2(t*.45 + seed, p.y*1.6)) - .5) * .32 * clamp(y, 0., 1.2);
+      float x = p.x - sway;
+      float n  = fbm(vec2(x*4.2 + seed, p.y*2.6 - t*2.3));
+      float n2 = fbm(vec2(x*9. + 7. + seed, p.y*6.2 - t*3.9));
+      float w = w0 * (1. - .78 * smoothstep(-.1, 1.05, y));
+      float body = 1. - abs(x) / max(w, .001);
+      float heat = body*.9 + .38 - y*.95 - (n - .5)*1.35*(.3 + y) - (n2 - .5)*.55*(.15 + y);
+      heat *= smoothstep(-.07, .03, p.y + (n - .5)*.06);
+      return clamp(heat, 0., 1.);
+    }
+    void main(){
+      vec2 p = P(); float t = uTime, l = uLevel, g = grow();
+      float H = .14 + .6*g + .08*uBurst;
+      float w = .10 + .05*l + .03*uBurst;
+      float h = flame(p, H, w, t, 0.);
+      h = max(h, flame(p - vec2(-.07*g, 0.), H*.62, w*.55, t*1.1, 3.1) * .9);
+      h = max(h, flame(p - vec2(.075*g, 0.), H*.7, w*.55, t*1.05, 6.7) * .9);
+      h *= l;
+      vec3 col = ramp(h) * smoothstep(.0, .12, h) * 1.25;
+      float glow = exp(-pow(p.x/(.2 + .1*g), 2.) - pow((p.y - H*.3)/(H*.75 + .06), 2.));
+      col += vec3(.55,.12,.02) * glow * .32 * l;
+      float e = length(vec2(p.x, p.y/.3));
+      col += vec3(1.,.4,.06) * exp(-e*e/.018) * .55 * l;
+      col += vec3(1.,.55,.2) * uBurst * exp(-e*e/.08) * .5;
+      gl_FragColor = vec4(col, 0.);
+    }`;
+
+  // 물: 떠오르는 물의 구체 + 나선 물줄기 + 물결
+  const WATER = `
+    float caustic(vec2 uv, float t){
+      vec2 p = mod(uv*6.28318, 6.28318) - 250.; vec2 i = p; float c = 1.; float inten = .005;
+      for (int n = 0; n < 4; n++){
+        float tt = t * (1. - (3.5 / float(n+1)));
+        i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x));
+        c += 1. / length(vec2(p.x / (sin(i.x + tt) / inten), p.y / (cos(i.y + tt) / inten)));
+      }
+      c /= 4.; c = 1.17 - pow(c, 1.4); return pow(abs(c), 8.);
+    }
+    void main(){
+      vec2 p = P(); float t = uTime, l = uLevel, g = grow();
+      vec2 c = vec2(0., .2 + .14*g + .012*sin(t*1.3));
+      float R = (.045 + .115*g) * (1. + .12*uBurst);
+      vec2 d = p - c; float a = atan(d.y, d.x);
+      float wob = 1. + .035*sin(a*3. + t*2.1) + .025*sin(a*5. - t*2.9) + .012*sin(a*9. + t*4.3);
+      float r = length(d) / (R*wob);
+      vec3 streams = vec3(0.);
+      for (int k = 0; k < 3; k++){
+        float ph = float(k) * 2.0944;
+        float f = clamp(p.y / c.y, 0., 1.);
+        float rad = mix(.19, R*1.1, smoothstep(0., 1., f));
+        float ang = p.y*11. - t*3.2 + ph;
+        float hx = rad * sin(ang);
+        float depth = cos(ang);
+        float w = (.005 + .007*(1. - f)) * (1. + .45*depth);
+        float band = smoothstep(w, w*.2, abs(p.x - hx));
+        float fade = smoothstep(-.01, .04, p.y) * (1. - smoothstep(c.y - .03, c.y + R*.4, p.y));
+        float foam = .55 + .45*noise(vec2(p.y*38. - t*9., float(k)*10.));
+        float s = band * fade * foam * (.35 + .65*(depth*.5 + .5));
+        if (depth < 0. && r < 1.) s *= .2;
+        streams += mix(vec3(.2,.6,1.), vec3(.75,.95,1.), foam) * s * 1.25;
+      }
+      vec3 col = streams * l;
+      float alpha = 0.;
+      float halo = exp(-max(r - 1., 0.) * 4.) * smoothstep(0., 1., r);
+      col += vec3(.08,.35,.9) * halo * .35 * g * l;
+      if (r < 1.03){
+        float z = sqrt(max(0., 1. - r*r));
+        vec2 n2 = d / (R*wob);
+        vec2 refr = n2 * (1. - z) * .7;
+        float cs = caustic(refr*1.2 + vec2(.13, .07)*t*.3, t*.55 + 1.);
+        vec3 deep = mix(vec3(.01,.07,.26), vec3(.06,.42,.86), clamp(z*.8 + .25*n2.y, 0., 1.));
+        vec3 oc = deep + vec3(.55,.9,1.) * cs * (.5 + .5*z);
+        float fres = pow(1. - z, 3.);
+        oc += vec3(.45,.85,1.) * fres * 1.2;
+        vec2 hl = n2 - vec2(-.36, .42);
+        oc += vec3(1.) * exp(-dot(hl, hl) * 26.) * .95;
+        oc += vec3(.8,.95,1.) * exp(-dot(n2 - vec2(.3,-.45), n2 - vec2(.3,-.45)) * 60.) * .25;
+        float edge = smoothstep(1.03, .97, r);
+        float oa = edge * (.62 + .33*fres) * l;
+        col = oc * oa + col * (1. - oa);
+        alpha = oa;
+      }
+      float e = length(vec2(p.x, p.y/.3));
+      float rip = pow(sin(e*70. - t*5.) * .5 + .5, 6.) * exp(-e*5.) * smoothstep(.0, .04, e);
+      col += vec3(.3,.72,1.) * rip * .55 * l;
+      col += vec3(.15,.5,1.) * exp(-e*e/.02) * .35 * l;
+      col += vec3(.4,.8,1.) * uBurst * exp(-e*e/.06) * .45;
+      gl_FragColor = vec4(col, alpha);
+    }`;
+
+  // 빛: 빛나는 별의 핵 + 회전하는 광선 + 빛기둥 + 광륜
+  const LIGHT = `
+    void main(){
+      vec2 p = P(); float t = uTime, l = uLevel, g = grow();
+      vec2 c = vec2(0., .2 + .14*g + .008*sin(t*1.1));
+      vec2 d = p - c; float r = length(d); float a = atan(d.y, d.x);
+      float s = sin(a*9. + t*.35)*.5 + sin(a*14. - t*.55)*.3 + sin(a*23. + t*.9)*.2;
+      float rays = pow(max(0., s*.5 + .5), 2.5);
+      float rays2 = pow(max(0., sin(a*6. - t*.22)*.5 + .5), 8.);
+      float reach = .14 + .36*g + .2*uBurst;
+      float fall = exp(-r / reach * 2.2);
+      vec3 col = vec3(1.,.84,.48) * (rays*.32 + rays2*.3) * fall * smoothstep(0., .03, r) * (.35 + .65*g);
+      col += vec3(1.,.9,.7) * (.008 / (r + .008)) * (.5 + .4*g);
+      col += vec3(1.) * exp(-r*r / (.0006 + .0012*g)) * 1.3;
+      float R1 = .09 + .09*g;
+      float dash = smoothstep(.25, .65, sin(a*24. + t*1.2)*.5 + .5);
+      col += vec3(1.,.88,.55) * exp(-pow((r - R1)/.0035, 2.)) * (.25 + .55*dash) * g;
+      float R2 = R1 * 1.42;
+      float dash2 = smoothstep(.4, .6, sin(a*60. - t*.8)*.5 + .5);
+      col += vec3(.85,.9,1.) * exp(-pow((r - R2)/.0022, 2.)) * (.15 + .35*dash2) * g;
+      float pw = .018 + .04*g;
+      float up = smoothstep(-.02, .04, p.y);
+      float shim = .6 + .4*noise(vec2(p.x*28., p.y*5. - t*3.));
+      col += vec3(1.,.82,.45) * exp(-pow(p.x/pw, 2.)) * up * shim * .26 * g;
+      col += vec3(1.,.96,.85) * exp(-pow(p.x/(pw*.22), 2.)) * up * .24 * g;
+      vec2 dir = normalize(vec2(.85, -.4));
+      for (int i = 0; i < 3; i++){
+        float fi = float(i);
+        vec2 gp = c + dir * (.24 + fi*.16) * (.6 + .4*g);
+        float gd = length(p - gp); float gr = .018 + .014*fi;
+        col += mix(vec3(.5,.7,1.), vec3(1.,.6,.85), fi*.5) * smoothstep(gr, gr*.6, gd) * .03 * g;
+      }
+      float e = length(vec2(p.x, p.y/.3));
+      col += vec3(1.,.85,.5) * exp(-e*e/.03) * .38;
+      col += vec3(1.,.95,.8) * uBurst * exp(-r*r/.05) * .9;
+      gl_FragColor = vec4(col * l, 0.);
+    }`;
+
+  // 공기: 소용돌이치는 회오리바람
+  const AIR = `
+    void main(){
+      vec2 p = P(); float t = uTime, l = uLevel, g = grow();
+      float H = .2 + .5*g + .05*uBurst;
+      float y = p.y; float yn = clamp(y / H, 0., 1.);
+      float cx = (.035*sin(y*5. - t*1.7) + .02*sin(y*11. + t*2.3)) * yn * (.4 + g);
+      float rad = mix(.028, .07 + .18*g, pow(yn, 1.25)) * (1. + .07*sin(y*18. - t*6.));
+      float x = (p.x - cx) / rad;
+      vec3 col = vec3(0.); float alpha = 0.;
+      float vert = smoothstep(-.02, .03, y) * (1. - smoothstep(H*.82, H*1.05, y));
+      if (abs(x) < 1.){
+        float u = asin(clamp(x, -1., 1.));
+        float z = sqrt(max(0., 1. - x*x));
+        float spin = t * (5. - 2.5*yn);
+        float f1 = fbm(vec2((u + spin)*1.2, y*15. - t*1.4 + u*1.1));
+        float f2 = fbm(vec2((3.14159 - u + spin)*1.2 + 5., y*15. - t*1.4 - u*1.1));
+        float s1 = smoothstep(.46, .78, f1); float s2 = smoothstep(.5, .8, f2);
+        float limb = 1. / (z + .3);
+        float dens = (s1 + s2*.45) * limb * .33 + .07*limb;
+        dens *= vert * smoothstep(1., .8, abs(x));
+        vec3 c = mix(vec3(.45,.8,.85), vec3(.93,1.,1.), s1);
+        alpha = clamp(dens * .45, 0., .75) * l;
+        col = c * clamp(dens, 0., 1.6) * l;
+      }
+      vec2 e = vec2(p.x, p.y/.3); float er = length(e);
+      float ca = cos(t*1.6), sa = sin(t*1.6);
+      vec2 rp = mat2(ca, -sa, sa, ca) * e;
+      float du = fbm(rp*7. + vec2(0., t*.3)) * exp(-er*er/.07) * smoothstep(.015, .08, er);
+      col += vec3(.55,.85,.8) * smoothstep(.35, .8, du) * .5 * l;
+      col += vec3(.15,.5,.5) * exp(-pow(p.x/(.25 + .2*g), 2.) - pow((y - H*.4)/(H*.7), 2.)) * .12 * l;
+      col += vec3(.6,1.,.95) * uBurst * exp(-er*er/.05) * .35;
+      gl_FragColor = vec4(col, alpha);
+    }`;
+
+  // 흙: 빛나는 균열이 퍼지는 대지 + 흙먼지
+  const EARTH = `
+    float voroEdge(vec2 x){
+      vec2 n = floor(x), f = fract(x); vec2 mg, mr; float md = 8.;
+      for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++){
+        vec2 gg = vec2(float(i), float(j)); vec2 o = hash2(n + gg);
+        vec2 r = gg + o - f; float d = dot(r, r);
+        if (d < md){ md = d; mr = r; mg = gg; }
+      }
+      md = 8.;
+      for (int j = -2; j <= 2; j++) for (int i = -2; i <= 2; i++){
+        vec2 gg = mg + vec2(float(i), float(j)); vec2 o = hash2(n + gg);
+        vec2 r = gg + o - f;
+        if (dot(mr - r, mr - r) > .00001) md = min(md, dot(.5*(mr + r), normalize(r - mr)));
+      }
+      return md;
+    }
+    void main(){
+      vec2 p = P(); float t = uTime, l = uLevel, g = grow();
+      vec2 e = vec2(p.x, p.y/.32); float er = length(e);
+      float R = .07 + .42*g + .08*uBurst;
+      float ang = atan(e.y, e.x);
+      float jag = R * (1. + .22*(sin(ang*5. + 1.3)*.5 + sin(ang*9. - .7)*.3 + sin(ang*17.)*.2));
+      float inside = smoothstep(jag, jag*.72, er);
+      vec2 warp = vec2(fbm3(e*5.), fbm3(e*5. + 9.)) * .7;
+      float edge = voroEdge(e*6. + warp);
+      float edge2 = voroEdge(e*19. + 3. + warp);
+      float vary = .35 + .65*smoothstep(.3, .65, fbm3(e*3. + vec2(t*.15, 0.)));
+      float crack = smoothstep(.04, .0, edge) * inside * vary;
+      float crack2 = smoothstep(.025, .0, edge2) * inside * smoothstep(jag*.85, jag*.2, er) * .6;
+      float pulse = .5 + .5*sin(er*26. - t*4.);
+      vec3 hot = mix(vec3(.45,1.,.35), vec3(1.,.78,.32), .5 + .5*sin(t*.6 + er*7.));
+      vec3 col = hot * (crack + crack2) * (.45 + .75*pulse) * 1.3;
+      col += hot * smoothstep(.22, .0, edge) * inside * .1;
+      float ground = smoothstep(jag*1.15, jag*.5, er) * smoothstep(.05, -.02, p.y - .0) ;
+      float haze = fbm(vec2(p.x*4., p.y*3. - t*.35)) * exp(-pow(p.x/(.28 + .3*g), 2.)) * smoothstep(-.05, .05, p.y) * exp(-max(p.y, 0.)*3.2);
+      col += vec3(.6,.45,.26) * haze * .34;
+      col += vec3(.4,.95,.35) * exp(-er*er/.008) * .55;
+      col += vec3(.9,.8,.4) * uBurst * exp(-er*er/.1) * .4;
+      float alpha = ground * .0;
+      gl_FragColor = vec4(col * l, alpha);
+    }`;
+
+  let gl = null, quad = null, programs = {}, bgProgram = null;
+  function compile(type, src) {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }
+  function makeProgram(body) {
+    const prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, COMMON + body));
+    gl.bindAttribLocation(prog, 0, 'aPos');
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    const u = {};
+    ['uRes','uBase','uScale','uTime','uLevel','uGrowth','uBurst','uTint'].forEach(n => u[n] = gl.getUniformLocation(prog, n));
+    return { prog, u };
+  }
+  function initGL() {
+    try {
+      gl = glCanvas.getContext('webgl', { alpha: false, antialias: false, premultipliedAlpha: true, powerPreference: 'high-performance' });
+      if (!gl) throw new Error('WebGL을 사용할 수 없어요');
+      quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      bgProgram = makeProgram(BG);
+      programs = { fire: makeProgram(FIRE), water: makeProgram(WATER), light: makeProgram(LIGHT), air: makeProgram(AIR), earth: makeProgram(EARTH) };
+      glCanvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); gl = null; });
+    } catch (error) {
+      console.warn('WebGL 효과를 시작하지 못했어요.', error);
+      showMessage('고화질 효과를 표시하지 못해 기본 효과를 보여주고 있어요. 브라우저의 그래픽 가속 설정을 확인해 주세요.');
+      gl = null;
+    }
+  }
+  initGL();
+
+  // ───────────────────────── 화면 크기 ─────────────────────────
+  let W = 0, H = 0, ratio = 1, glScale = 1, unit = 1, cx = 0, baseY = 0;
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    ratio = Math.min(window.devicePixelRatio || 1, 2);
+    fxCanvas.width = Math.round(W * ratio); fxCanvas.height = Math.round(H * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const gr = Math.min(window.devicePixelRatio || 1, 1.5) * glScale;
+    glCanvas.width = Math.max(1, Math.round(W * gr)); glCanvas.height = Math.max(1, Math.round(H * gr));
+    if (gl) gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+    unit = Math.min(H, W * 1.15);
+    cx = W / 2;
+    const controls = document.querySelector('.controls').getBoundingClientRect();
+    const fromBottom = Math.max(H * .2, (H - controls.top) + unit * .1);
+    baseY = H - Math.min(fromBottom, H * .42);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ───────────────────────── 파티클 도우미 ─────────────────────────
+  const sprites = {};
+  function sprite(r, g, b) {
+    const key = r + ',' + g + ',' + b;
+    if (sprites[key]) return sprites[key];
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const x = c.getContext('2d');
+    const grad = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(.18, `rgba(${r},${g},${b},.9)`);
+    grad.addColorStop(.5, `rgba(${r},${g},${b},.25)`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    x.fillStyle = grad; x.fillRect(0, 0, 64, 64);
+    return (sprites[key] = c);
+  }
+  function glowDot(img, x, y, size, alpha) {
+    if (alpha <= .003) return;
+    ctx.globalAlpha = Math.min(1, alpha);
+    ctx.drawImage(img, x - size, y - size, size * 2, size * 2);
+  }
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const ease = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+  const easeBack = (x) => { x = Math.min(1, Math.max(0, x)); const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+  let parts = [];
+  const add = (p) => { if (parts.length < 1100) parts.push(p); };
+  const shockwaves = [];
+  const count = (k) => { let n = 0; for (const p of parts) if (p.k === k) n++; return n; };
+
+  // 원소별 위치 계산 (셰이더와 같은 식)
+  const orbY = () => baseY - unit * (.2 + .14 * ease(growth.water));
+  const coreY = () => baseY - unit * (.2 + .14 * ease(growth.light));
+  function tornado(hUnits) {
+    const g = smooth(growth.air), Ht = .2 + .5 * g, yn = Math.min(1, Math.max(0, hUnits / Ht)), t = now;
+    const sway = (.035 * Math.sin(hUnits * 5 - t * 1.7) + .02 * Math.sin(hUnits * 11 + t * 2.3)) * yn * (.4 + g);
+    const rad = (.028 + (.07 + .18 * g - .028) * Math.pow(yn, 1.25));
+    return { x: cx + sway * unit, rad: rad * unit, H: Ht };
+  }
+  const smooth = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+
+  // ───────────────────────── 원소별 생성 ─────────────────────────
+  function spawnEmber(burstMode) {
+    const a = rand(-Math.PI, 0), sp = burstMode ? rand(120, 420) : 0;
+    add({ k: 'ember', x: cx + rand(-1, 1) * unit * (.03 + .06 * level.fire), y: baseY - rand(0, unit * .04),
+      vx: burstMode ? Math.cos(a) * sp : rand(-25, 25), vy: burstMode ? Math.sin(a) * sp : -rand(60, 170) * (unit / 800),
+      life: rand(.8, 2.2), max: 2.2, size: rand(1.5, 4.2), ph: rand(0, 6.28) });
+  }
+  function spawnBubble() {
+    add({ k: 'bubble', x: cx + rand(-1, 1) * unit * .16, y: baseY + rand(-4, 6), vy: -rand(50, 110) * (unit / 800),
+      r: rand(1.5, 5), life: rand(2, 4), max: 4, ph: rand(0, 6.28) });
+  }
+  function spawnDrop() {
+    const a = rand(-Math.PI * .88, -Math.PI * .12), sp = rand(260, 620) * (unit / 800);
+    add({ k: 'drop', x: cx + rand(-1, 1) * unit * .05, y: baseY - unit * .02, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 3, max: 3 });
+  }
+  function spawnRipple(x, y, size, strength) { add({ k: 'ripple', x, y, age: 0, max: rand(1.2, 1.8), size, s: strength }); }
+  function spawnSparkle(burstMode) {
+    const g = ease(growth.light), a = rand(0, Math.PI * 2), d = burstMode ? 0 : rand(.04, .2 + .25 * g) * unit;
+    const sp = burstMode ? rand(150, 500) * (unit / 800) : rand(5, 25);
+    add({ k: 'sparkle', x: cx + Math.cos(a) * d, y: coreY() + Math.sin(a) * d * .8, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (burstMode ? 0 : 12),
+      life: rand(.8, 2), max: 2, size: rand(4, 11) * (unit / 800), rot: rand(0, 3), spin: rand(-1.5, 1.5) });
+  }
+  function spawnMote() {
+    const g = ease(growth.light);
+    add({ k: 'mote', x: cx + rand(-1, 1) * unit * (.015 + .05 * g) * 1.4, y: baseY - rand(0, 10), vy: -rand(90, 260) * (unit / 800),
+      life: rand(1.5, 3), max: 3, size: rand(1.5, 3.2), ph: rand(0, 6.28) });
+  }
+  function spawnStreak(burstMode) {
+    const g = smooth(growth.air), Ht = .2 + .6 * g;
+    add({ k: 'streak', h: rand(.01, Ht * .95), th: rand(0, Math.PI * 2), om: rand(4, 8) * (burstMode ? 1.4 : 1), rise: rand(.02, .09),
+      out: rand(1.05, 1.5) + (burstMode ? rand(.3, 1.2) : 0), len: rand(.7, 1.8), life: rand(.9, 1.8), max: 1.8, lw: rand(.8, 2.4) });
+  }
+  function spawnLeaf(burstMode) {
+    const g = smooth(growth.air), Ht = .2 + .6 * g;
+    add({ k: 'leaf', h: rand(0, burstMode ? .05 : Ht * .7), th: rand(0, Math.PI * 2), om: rand(3, 5.5), rise: rand(.04, .11), out: rand(1.1, 1.6),
+      life: rand(3, 6), max: 6, size: rand(5, 9) * (unit / 800), rot: rand(0, 6.28), spin: rand(-6, 6),
+      hue: Math.random() < .7 ? [rand(110, 160) | 0, rand(200, 225) | 0, rand(110, 140) | 0] : [rand(220, 245) | 0, rand(200, 225) | 0, rand(120, 150) | 0] });
+  }
+  function rockShape(n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + rand(-.2, .2); const r = rand(.7, 1.05); pts.push([Math.cos(a) * r, Math.sin(a) * r * .82]); }
+    return pts;
+  }
+  function spawnRock() {
+    add({ k: 'rock', th: rand(0, Math.PI * 2), om: rand(.35, .8) * (Math.random() < .5 ? 1 : 1), orb: rand(.14, .34), hT: rand(.1, .42),
+      age: 0, life: rand(9, 15), size: rand(14, 34) * (unit / 800), pts: rockShape(8 + (Math.random() * 4 | 0)), rot: rand(0, 6.28), spin: rand(-.8, .8),
+      rune: Math.random() < .55, ph: rand(0, 6.28), fall: false, vx: 0, vy: 0, x: cx, y: baseY, alpha: 1 });
+  }
+  function spawnPebble() {
+    const a = rand(-Math.PI * .92, -Math.PI * .08), sp = rand(250, 700) * (unit / 800);
+    add({ k: 'pebble', x: cx + rand(-1, 1) * unit * .06, y: baseY, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, rot: rand(0, 6), spin: rand(-8, 8),
+      size: rand(2.5, 7) * (unit / 800), life: 3, max: 3, pts: rockShape(6) });
+  }
+  function spawnDust() {
+    add({ k: 'dust', x: cx + rand(-1, 1) * unit * (.1 + .3 * smooth(growth.earth)), y: baseY + rand(-10, 14), vx: rand(-12, 12), vy: -rand(12, 45),
+      life: rand(2, 4), max: 4, size: rand(1.5, 3.5) });
+  }
+
+  function castBurst(key) {
+    shockwaves.push({ age: 0, rgb: ELEMENTS[key].rgb });
+    if (shockwaves.length > 5) shockwaves.shift();
+    if (key === 'fire') { for (let i = 0; i < 46; i++) spawnEmber(true); }
+    if (key === 'water') { for (let i = 0; i < 46; i++) spawnDrop(); for (let i = 0; i < 3; i++) setTimeout(() => spawnRipple(cx, baseY, unit * .3, 1), i * 220); }
+    if (key === 'light') { for (let i = 0; i < 34; i++) spawnSparkle(true); }
+    if (key === 'air') { for (let i = 0; i < 30; i++) spawnStreak(true); for (let i = 0; i < 14; i++) spawnLeaf(true); }
+    if (key === 'earth') {
+      shake = Math.max(shake, .75);
+      for (let i = 0; i < 34; i++) spawnPebble();
+      const need = 7 - count('rock'); for (let i = 0; i < need; i++) spawnRock();
+    }
+  }
+
+  // ───────────────────────── 마법진 ─────────────────────────
+  function drawMagicCircle(time, dt) {
+    const tc = ELEMENTS[selected].rgb;
+    for (let i = 0; i < 3; i++) circleRGB[i] += (tc[i] - circleRGB[i]) * (1 - Math.exp(-4 * dt));
+    const [r, g, b] = circleRGB.map(v => v | 0);
+    const lv = Math.max(...ORDER.map(k => level[k]));
+    const s = .3 + .7 * lv + .08 * Math.sin(time * 1.8) * (1 - lv);
+    const R = unit * .21;
+    const col = (a) => `rgba(${r},${g},${b},${Math.max(0, Math.min(1, a))})`;
+    ctx.save();
+    ctx.translate(cx, baseY);
+    ctx.scale(1, .3);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowBlur = 14 + 10 * lv; ctx.shadowColor = col(.9);
+    ctx.lineCap = 'round';
+    const ring = (rad, lw, a, dash, rot) => {
+      ctx.save(); ctx.rotate(rot || 0); ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
+      ctx.lineWidth = lw; ctx.strokeStyle = col(a); ctx.setLineDash(dash || []); ctx.stroke(); ctx.restore();
+    };
+    ring(R, 2.2, .75 * s);
+    ring(R * .955, 1, .5 * s);
+    ring(R * .83, 1.2, .55 * s, [R * .06, R * .035], time * .25);
+    ring(R * .6, 1.6, .6 * s);
+    ring(R * .25, 1.2, .55 * s, [], 0);
+    // 눈금
+    ctx.save(); ctx.rotate(-time * .12);
+    ctx.strokeStyle = col(.55 * s); ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < 72; i++) { const a = i / 72 * Math.PI * 2, l0 = i % 6 === 0 ? .86 : .9; ctx.moveTo(Math.cos(a) * R * l0, Math.sin(a) * R * l0); ctx.lineTo(Math.cos(a) * R * .95, Math.sin(a) * R * .95); }
+    ctx.stroke(); ctx.restore();
+    // 오각별
+    ctx.save(); ctx.rotate(time * .18);
+    ctx.strokeStyle = col(.7 * s); ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i <= 5; i++) { const a = (i * 2) % 5 / 5 * Math.PI * 2 - Math.PI / 2; const x = Math.cos(a) * R * .6, y = Math.sin(a) * R * .6; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
+    ctx.stroke();
+    ORDER.forEach((k, i) => {
+      const a = i / 5 * Math.PI * 2 - Math.PI / 2, x = Math.cos(a) * R * .6, y = Math.sin(a) * R * .6;
+      const on = k === selected;
+      const c = ELEMENTS[k].rgb;
+      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${(on ? .95 : .45) * (.4 + .6 * s)})`;
+      ctx.beginPath(); ctx.arc(x, y, on ? 6 : 4, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+    // 원소 문양
+    ctx.save(); ctx.rotate(-time * .1);
+    ctx.strokeStyle = col(.9 * s); ctx.lineWidth = 2;
+    const q = R * .18;
+    ctx.beginPath();
+    if (selected === 'light') {
+      ctx.arc(0, 0, q * .5, 0, Math.PI * 2);
+      for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; ctx.moveTo(Math.cos(a) * q * .7, Math.sin(a) * q * .7); ctx.lineTo(Math.cos(a) * q, Math.sin(a) * q); }
+    } else {
+      const down = selected === 'water' || selected === 'earth';
+      const sgn = down ? 1 : -1;
+      ctx.moveTo(0, sgn * q); ctx.lineTo(q * .87, -sgn * q * .5); ctx.lineTo(-q * .87, -sgn * q * .5); ctx.closePath();
+      if (selected === 'air' || selected === 'earth') { ctx.moveTo(-q * .6, sgn * -.05 * q); ctx.lineTo(q * .6, sgn * -.05 * q); }
+    }
+    ctx.stroke(); ctx.restore();
+    ctx.restore();
+  }
+  function drawShockwaves(dt) {
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+      const w = shockwaves[i]; w.age += dt;
+      if (w.age >= 1.2) { shockwaves.splice(i, 1); continue; }
+      const f = w.age / 1.2, rad = unit * (.04 + ease(f) * .42);
+      const [r, g, b] = w.rgb;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.shadowBlur = 26; ctx.shadowColor = `rgba(${r},${g},${b},.9)`;
+      ctx.strokeStyle = `rgba(${Math.min(255, r + 80)},${Math.min(255, g + 80)},${Math.min(255, b + 80)},${.85 * (1 - f)})`;
+      ctx.lineWidth = 4 * (1 - f) + .5;
+      ctx.beginPath(); ctx.ellipse(cx, baseY, rad, rad * .3, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // ───────────────────────── 흙: 수정 결정 ─────────────────────────
+  const CRYSTALS = [
+    { dx: -.095, h: .11, w: .026, tilt: -.5 }, { dx: .1, h: .12, w: .026, tilt: .48 },
+    { dx: -.05, h: .19, w: .034, tilt: -.26 }, { dx: .055, h: .21, w: .034, tilt: .3 },
+    { dx: .018, h: .15, w: .03, tilt: .1 }, { dx: 0, h: .3, w: .045, tilt: -.03 },
+  ];
+  function drawCrystals(time) {
+    const lv = level.earth; if (lv < .01) return;
+    const g = growth.earth;
+    ctx.save();
+    CRYSTALS.forEach((c, i) => {
+      const s = easeBack(g * 1.6 - i * .09) * Math.min(1, lv * 1.4);
+      if (s <= .01) return;
+      const h = c.h * unit * s * (1 + .015 * Math.sin(time * 2 + i)), w = c.w * unit * Math.min(1, s * 1.3);
+      ctx.save();
+      ctx.translate(cx + c.dx * unit, baseY + 2);
+      ctx.rotate(c.tilt);
+      ctx.globalAlpha = Math.min(1, lv * 1.3);
+      ctx.shadowBlur = 24; ctx.shadowColor = 'rgba(110,255,150,.55)';
+      const left = ctx.createLinearGradient(-w, -h, 0, 0);
+      left.addColorStop(0, 'rgba(210,255,215,.95)'); left.addColorStop(.5, 'rgba(90,210,130,.9)'); left.addColorStop(1, 'rgba(20,90,60,.92)');
+      ctx.fillStyle = left;
+      ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(-w, -h * .74); ctx.lineTo(0, -h); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0;
+      const right = ctx.createLinearGradient(w, -h, 0, 0);
+      right.addColorStop(0, 'rgba(120,230,160,.9)'); right.addColorStop(.6, 'rgba(30,130,85,.92)'); right.addColorStop(1, 'rgba(8,50,34,.95)');
+      ctx.fillStyle = right;
+      ctx.beginPath(); ctx.moveTo(w, 0); ctx.lineTo(w, -h * .74); ctx.lineTo(0, -h); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = 'rgba(220,255,225,.75)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -h); ctx.lineTo(-w, -h * .74); ctx.stroke();
+      const sy = -h * (.2 + .6 * ((time * .35 + i * .21) % 1));
+      const shine = ctx.createLinearGradient(0, sy - h * .08, 0, sy + h * .08);
+      shine.addColorStop(0, 'rgba(255,255,255,0)'); shine.addColorStop(.5, 'rgba(230,255,235,.35)'); shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(-w, -h * .74); ctx.lineTo(0, -h); ctx.lineTo(w, -h * .74); ctx.lineTo(w, 0); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+  function drawRock(p) {
+    ctx.save();
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    const s = p.size * p.scale;
+    ctx.globalAlpha = p.alpha;
+    const grad = ctx.createLinearGradient(0, -s, 0, s);
+    const lit = p.depthLit;
+    grad.addColorStop(0, `rgb(${190 * lit | 0},${165 * lit | 0},${125 * lit | 0})`);
+    grad.addColorStop(.45, `rgb(${118 * lit | 0},${96 * lit | 0},${70 * lit | 0})`);
+    grad.addColorStop(1, `rgb(${44 * lit | 0},${36 * lit | 0},${28 * lit | 0})`);
+    ctx.fillStyle = grad;
+    ctx.shadowBlur = 14; ctx.shadowColor = 'rgba(120,255,140,.35)';
+    ctx.beginPath();
+    p.pts.forEach(([x, y], i) => i ? ctx.lineTo(x * s, y * s) : ctx.moveTo(x * s, y * s));
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = `rgba(210,190,150,${.35 * lit})`; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < p.pts.length / 2; i++) { const [x, y] = p.pts[i + (p.pts.length / 2 | 0)]; if (i) ctx.lineTo(x * s, y * s); else ctx.moveTo(x * s, y * s); }
+    ctx.stroke();
+    if (p.rune) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(120,255,140,.9)';
+      ctx.strokeStyle = `rgba(170,255,170,${.55 + .35 * Math.sin(now * 3 + p.ph)})`; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(-s * .4, -s * .2); ctx.lineTo(-s * .05, s * .1); ctx.lineTo(s * .15, -s * .25); ctx.lineTo(s * .4, s * .15); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ───────────────────────── 파티클 갱신 / 그리기 ─────────────────────────
+  const emit = { ember: 0, bubble: 0, ripple: 0, sparkle: 0, mote: 0, streak: 0, leaf: 0, rock: 0, dust: 0 };
+  function emitAll(dt) {
+    const u = (k, rate, fn) => { emit[k] += rate * dt; while (emit[k] >= 1) { emit[k]--; fn(); } };
+    u('ember', level.fire * (40 + 45 * growth.fire), () => spawnEmber(false));
+    u('bubble', level.water * 16, spawnBubble);
+    u('ripple', level.water * .8, () => spawnRipple(cx, baseY, unit * rand(.18, .3), .5));
+    u('sparkle', level.light * (8 + 14 * growth.light), () => spawnSparkle(false));
+    u('mote', level.light * 45 * growth.light, spawnMote);
+    u('streak', level.air * (16 + 26 * growth.air), () => spawnStreak(false));
+    u('leaf', level.air * 3.5, () => spawnLeaf(false));
+    u('dust', level.earth * 22, spawnDust);
+    u('rock', target.earth ? 1.4 : 0, () => { if (count('rock') < 13) spawnRock(); });
+  }
+  const EMBER = sprite(255, 120, 30), BLUE = sprite(90, 180, 255), GOLD = sprite(255, 214, 120), MINT = sprite(150, 255, 230), DUST = sprite(190, 150, 100), GREEN = sprite(130, 255, 150);
+
+  function updateParts(dt, time) {
+    const u8 = unit / 800;
+    const earthRocks = [];
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      let dead = false;
+      switch (p.k) {
+        case 'ember':
+          p.life -= dt; p.vx *= Math.pow(.4, dt); p.vy = p.vy * Math.pow(.7, dt) - 60 * u8 * dt;
+          p.x += (p.vx + Math.sin(time * 3 + p.ph + p.y * .02) * 28) * dt; p.y += p.vy * dt;
+          dead = p.life <= 0 || p.y < -30; break;
+        case 'bubble': {
+          p.life -= dt; p.y += p.vy * dt; const oy = orbY();
+          p.x += (Math.sin(time * 3 + p.ph) * 16 + (cx - p.x) * .9) * dt;
+          if (p.y < oy) p.life = Math.min(p.life, .25);
+          dead = p.life <= 0; break;
+        }
+        case 'drop':
+          p.life -= dt; p.vy += 1100 * u8 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+          if (p.vy > 0 && p.y > baseY + unit * .02) { dead = true; if (Math.random() < .25) spawnRipple(p.x, p.y, unit * .04, .6); }
+          dead = dead || p.life <= 0; break;
+        case 'ripple': p.age += dt; dead = p.age > p.max; break;
+        case 'sparkle':
+          p.life -= dt; p.vx *= Math.pow(.25, dt); p.vy = p.vy * Math.pow(.25, dt) - 6 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.spin * dt;
+          dead = p.life <= 0; break;
+        case 'mote':
+          p.life -= dt; p.y += p.vy * dt; p.x += Math.sin(time * 4 + p.ph) * 10 * dt; dead = p.life <= 0 || p.y < -20; break;
+        case 'streak': case 'leaf':
+          p.life -= dt; p.th += p.om * dt; p.h += p.rise * dt; if (p.k === 'leaf') p.rot += p.spin * dt;
+          dead = p.life <= 0; break;
+        case 'pebble':
+          p.life -= dt; p.vy += 1300 * u8 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.spin * dt;
+          dead = p.life <= 0 || (p.vy > 0 && p.y > baseY + unit * .03); break;
+        case 'dust':
+          p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; dead = p.life <= 0; break;
+        case 'rock': {
+          p.rot += p.spin * dt;
+          if (!p.fall) {
+            p.age += dt; p.th += p.om * dt;
+            const rise = easeBack(p.age / 1.7);
+            const h = p.hT * rise + .012 * Math.sin(time * 1.4 + p.ph);
+            const orb = p.orb * (.55 + .45 * ease(p.age / 1.7));
+            p.x = cx + Math.cos(p.th) * orb * unit;
+            p.y = baseY - h * unit + Math.sin(p.th) * orb * unit * .3;
+            p.depth = Math.sin(p.th);
+            if (p.age > p.life || level.earth < .35) {
+              p.fall = true; p.vx = -Math.sin(p.th) * p.om * orb * unit; p.vy = rand(-40, 20);
+            }
+          } else {
+            p.vy += 1200 * u8 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+            if (p.y > baseY) p.alpha -= dt * 3;
+            dead = p.alpha <= 0 || p.y > H + 60;
+          }
+          p.scale = .82 + .22 * (p.depth * .5 + .5);
+          p.depthLit = .7 + .35 * (p.depth * .5 + .5);
+          break;
+        }
+      }
+      if (dead) parts.splice(i, 1);
+    }
+  }
+
+  function drawParts(layer, time) {
+    // layer: 'back' (수정 뒤) | 'front'
+    ctx.save();
+    for (const p of parts) {
+      if (p.k === 'rock') {
+        if ((layer === 'back') === (p.depth < 0 && !p.fall)) drawRock(p);
+        continue;
+      }
+      if (layer === 'back') continue;
+      ctx.globalCompositeOperation = 'lighter';
+      switch (p.k) {
+        case 'ember': {
+          const a = Math.min(1, p.life / .6) * Math.min(1, (p.max - p.life) * 5 + .3);
+          glowDot(EMBER, p.x, p.y, p.size * 4, a);
+          glowDot(GOLD, p.x, p.y, p.size * 1.3, a);
+          break;
+        }
+        case 'bubble': {
+          const a = Math.min(1, p.life / .4) * .8;
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = `rgba(170,225,255,${a})`; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = `rgba(230,250,255,${a})`;
+          ctx.beginPath(); ctx.arc(p.x - p.r * .35, p.y - p.r * .35, p.r * .28, 0, Math.PI * 2); ctx.fill();
+          break;
+        }
+        case 'drop': {
+          ctx.globalAlpha = 1;
+          const sp = Math.hypot(p.vx, p.vy) || 1;
+          const len = Math.min(18, sp * .025) + 2;
+          ctx.strokeStyle = 'rgba(150,215,255,.85)'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx / sp * len, p.y - p.vy / sp * len); ctx.stroke();
+          glowDot(BLUE, p.x, p.y, 7, .5);
+          break;
+        }
+        case 'ripple': {
+          const f = p.age / p.max, rad = p.size * ease(f);
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = `rgba(140,210,255,${(1 - f) * .7 * p.s})`; ctx.lineWidth = 1.6 * (1 - f) + .4;
+          ctx.beginPath(); ctx.ellipse(p.x, p.y, rad, rad * .3, 0, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'sparkle': {
+          const a = Math.sin(Math.PI * (1 - p.life / p.max)) * (.7 + .3 * Math.sin(time * 12 + p.rot * 5));
+          glowDot(GOLD, p.x, p.y, p.size * 2.4, a * .8);
+          ctx.globalAlpha = Math.max(0, a);
+          ctx.fillStyle = '#fffbe8';
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          const s = p.size * 1.6, n = s * .14;
+          ctx.beginPath();
+          ctx.moveTo(0, -s); ctx.quadraticCurveTo(n, -n, s, 0); ctx.quadraticCurveTo(n, n, 0, s); ctx.quadraticCurveTo(-n, n, -s, 0); ctx.quadraticCurveTo(-n, -n, 0, -s);
+          ctx.fill(); ctx.restore();
+          break;
+        }
+        case 'mote': glowDot(GOLD, p.x, p.y, p.size * 3, Math.min(1, p.life / .8) * .9); break;
+        case 'streak': {
+          const t = tornado(p.h), a = Math.sin(Math.PI * (1 - p.life / p.max)) * Math.min(1, level.air * 1.5 + .2);
+          const rad = t.rad * p.out, yy = baseY - p.h * unit;
+          ctx.globalAlpha = 1; ctx.lineCap = 'round';
+          const steps = 14;
+          for (let j = 0; j < steps; j++) {
+            const th0 = p.th - p.len * j / steps, th1 = p.th - p.len * (j + 1) / steps;
+            const depth = Math.cos(th0);
+            ctx.strokeStyle = `rgba(215,255,248,${a * (1 - j / steps) * (.25 + .75 * (depth * .5 + .5)) * .8})`;
+            ctx.lineWidth = p.lw * (1 - j / steps * .7);
+            ctx.beginPath();
+            ctx.moveTo(t.x + Math.sin(th0) * rad, yy + Math.cos(th0) * rad * .2);
+            ctx.lineTo(t.x + Math.sin(th1) * rad, yy + Math.cos(th1) * rad * .2);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'leaf': {
+          const t = tornado(Math.min(p.h, t0H())), rad = t.rad * p.out, yy = baseY - p.h * unit;
+          const x = t.x + Math.sin(p.th) * rad, y = yy + Math.cos(p.th) * rad * .2, depth = Math.cos(p.th);
+          const a = Math.min(1, p.life / .8, (p.max - p.life) * 3) * (.45 + .55 * (depth * .5 + .5));
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = Math.max(0, a);
+          ctx.save(); ctx.translate(x, y); ctx.rotate(p.rot); ctx.scale(1, .45 + .55 * Math.abs(Math.sin(p.rot * 1.3)));
+          const [lr, lg, lb] = p.hue;
+          ctx.fillStyle = `rgb(${lr},${lg},${lb})`;
+          ctx.beginPath(); ctx.moveTo(-p.size, 0); ctx.quadraticCurveTo(0, -p.size * .7, p.size, 0); ctx.quadraticCurveTo(0, p.size * .7, -p.size, 0); ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = .8;
+          ctx.beginPath(); ctx.moveTo(-p.size * .8, 0); ctx.lineTo(p.size * .8, 0); ctx.stroke();
+          ctx.restore();
+          break;
+        }
+        case 'pebble': {
+          ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = Math.min(1, p.life);
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.fillStyle = '#7a654c';
+          ctx.beginPath(); p.pts.forEach(([x, y], i) => i ? ctx.lineTo(x * p.size, y * p.size) : ctx.moveTo(x * p.size, y * p.size)); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = 'rgba(200,180,140,.5)';
+          ctx.fillRect(-p.size * .4, -p.size * .5, p.size * .5, p.size * .25);
+          ctx.restore();
+          break;
+        }
+        case 'dust': glowDot(DUST, p.x, p.y, p.size * 3, Math.sin(Math.PI * (1 - p.life / p.max)) * .45); break;
+      }
+    }
+    ctx.restore();
+  }
+  const t0H = () => .2 + .5 * smooth(growth.air);
+
+  // ───────────────────────── 예비(WebGL 없음) 효과 ─────────────────────────
+  function drawFallback() {
+    const f = glCanvas.getContext('2d'); if (!f) return;
+    const w = glCanvas.width, h = glCanvas.height, k = w / W;
+    f.fillStyle = '#060912'; f.fillRect(0, 0, w, h);
+    f.globalCompositeOperation = 'lighter';
+    ORDER.forEach(key => {
+      const l = level[key]; if (l < .01) return;
+      const [r, g, b] = ELEMENTS[key].rgb, rad = unit * k * (.2 + .25 * growth[key]);
+      const gr = f.createRadialGradient(cx * k, (baseY - unit * .2) * k, 0, cx * k, (baseY - unit * .2) * k, rad);
+      gr.addColorStop(0, `rgba(255,255,255,${.5 * l})`); gr.addColorStop(.3, `rgba(${r},${g},${b},${.45 * l})`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      f.fillStyle = gr; f.fillRect(0, 0, w, h);
+    });
+    f.globalCompositeOperation = 'source-over';
+  }
+
+  // ───────────────────────── 메인 루프 ─────────────────────────
+  let now = 0, previous = 0, slowTime = 0, fastTime = 0;
+  function frame(ms) {
+    const time = ms / 1000, dt = Math.min(.05, Math.max(0, time - previous || .016)); previous = time; now = time;
+
+    // 너무 느리면 셰이더 해상도를 낮춤
+    if (dt > 1 / 38) { slowTime += dt; fastTime = 0; } else { fastTime += dt; slowTime = Math.max(0, slowTime - dt * .5); }
+    if (slowTime > 1.5 && glScale > .5) { glScale *= .8; slowTime = 0; resize(); }
+
+    ORDER.forEach(k => {
+      const speed = target[k] > level[k] ? 2.2 : 2.6;
+      level[k] += (target[k] - level[k]) * (1 - Math.exp(-speed * dt));
+      if (!target[k] && level[k] < .002) level[k] = 0;
+      growth[k] = Math.max(0, Math.min(1, growth[k] + (target[k] ? dt / 5.5 : -dt / 2.2)));
+      burst[k] *= Math.exp(-dt * 2.4);
+    });
+    if (active && growth[active] >= 1 && lastCommand.textContent.indexOf('완전') === -1 && lastCommand.textContent.indexOf('끄기') === -1) {
+      lastCommand.textContent = ELEMENTS[active].title + ' · 완전히 펼쳐짐';
+    }
+
+    shake *= Math.exp(-dt * 4);
+    if (shake > .01) {
+      const m = shake * unit * .012;
+      scene.style.transform = `translate(${rand(-m, m).toFixed(1)}px, ${rand(-m, m).toFixed(1)}px)`;
+    } else if (scene.style.transform) scene.style.transform = '';
+
+    if (gl) {
+      try {
+        const gr = glCanvas.width / W;
+        const tint = [0, 0, 0]; let amb = 0, bmax = 0;
+        ORDER.forEach(k => { const t = ELEMENTS[k].tint; for (let i = 0; i < 3; i++) tint[i] += t[i] * level[k]; amb += level[k]; bmax = Math.max(bmax, burst[k]); });
+        const btint = [0, 0, 0]; ORDER.forEach(k => { const t = ELEMENTS[k].tint; for (let i = 0; i < 3; i++) btint[i] += t[i] * burst[k]; });
+        const setCommon = (pr, l, g, b) => {
+          gl.useProgram(pr.prog);
+          gl.uniform2f(pr.u.uRes, glCanvas.width, glCanvas.height);
+          gl.uniform2f(pr.u.uBase, cx * gr, (H - baseY) * gr);
+          gl.uniform1f(pr.u.uScale, unit * gr);
+          gl.uniform1f(pr.u.uTime, time % 1000);
+          gl.uniform1f(pr.u.uLevel, l); gl.uniform1f(pr.u.uGrowth, g); gl.uniform1f(pr.u.uBurst, b);
+        };
+        gl.disable(gl.BLEND);
+        setCommon(bgProgram, 1, 0, bmax);
+        const norm = Math.max(1, amb);
+        gl.uniform3f(bgProgram.u.uTint, tint[0] / norm + btint[0] * 0, tint[1] / norm, tint[2] / norm);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        ORDER.forEach(k => {
+          if (level[k] < .002 && burst[k] < .01) return;
+          setCommon(programs[k], level[k], growth[k], burst[k]);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+        });
+      } catch (e) { console.warn(e); gl = null; }
+    } else drawFallback();
+
+    ctx.clearRect(0, 0, W, H);
+    emitAll(dt);
+    updateParts(dt, time);
+    drawMagicCircle(time, dt);
+    drawShockwaves(dt);
+    drawParts('back', time);
+    drawCrystals(time);
+    drawParts('front', time);
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // 테스트/디버그용
+  window.magic = { command, level, growth };
+})();
+</script>
+</body>
+</html>
