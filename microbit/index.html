@@ -37,7 +37,7 @@
     .spell .chant { display: block; margin-top: 10px; font-size: clamp(.95rem,1.5vw,1.25rem); color: #efe6dc; text-shadow: 0 2px 14px #000; }
     @keyframes spell { 0% { opacity: 0; transform: translate(-50%, 14px) scale(.96); filter: blur(6px); } 14% { opacity: 1; transform: translate(-50%, 0) scale(1); filter: blur(0); } 72% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -10px); } }
 
-    .controls { position: fixed; z-index: 3; bottom: clamp(14px,3vh,30px); left: 50%; transform: translateX(-50%); width: min(1060px, calc(100% - 28px)); border: 1px solid rgba(255,255,255,.14); border-radius: 22px; background: rgba(9,12,24,.84); box-shadow: 0 24px 80px #0008; backdrop-filter: blur(22px); padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: opacity .4s; }
+    .controls { position: fixed; z-index: 3; bottom: clamp(14px,3vh,30px); left: 50%; transform: translateX(-50%); width: min(1180px, calc(100% - 28px)); border: 1px solid rgba(255,255,255,.14); border-radius: 22px; background: rgba(9,12,24,.84); box-shadow: 0 24px 80px #0008; backdrop-filter: blur(22px); padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: opacity .4s; }
     body.clean .controls, body.clean .top, body.clean .help { opacity: 0; pointer-events: none; }
     button { appearance: none; border: 1px solid rgba(255,255,255,.2); border-radius: 13px; background: rgba(255,255,255,.06); color: #fff6ee; font: inherit; font-size: .93rem; font-weight: 700; min-height: 46px; padding: 9px 14px; white-space: nowrap; cursor: pointer; transition: transform .16s, background .16s, border-color .16s, box-shadow .2s; }
     button:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.45); }
@@ -45,13 +45,19 @@
     button:disabled { opacity: .5; cursor: wait; }
     #connect { background: #f2e6d8; border-color: #f2e6d8; color: #1a1420; }
     #connect:hover:not(:disabled) { background: #fff; }
-    .elements { display: flex; gap: 7px; flex-wrap: wrap; }
+    .elements { display: flex; gap: 6px; }
+    .elements button, .tests button { padding: 9px 12px; }
     .el { display: inline-flex; align-items: center; gap: 8px; }
     .el i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; }
     .el.active { border-color: var(--c); background: color-mix(in srgb, var(--c) 24%, transparent); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 40%, transparent); }
+    .el.casting i { animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.6); } }
+    .picker small { display: block; color: #aea6b4; font-size: .72rem; margin: 0 0 5px 2px; }
+    .tests { display: flex; gap: 7px; }
+    .spell-test { border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
     .el kbd { font: inherit; font-size: .72rem; opacity: .55; font-weight: 600; }
     .divider { height: 34px; width: 1px; background: rgba(255,255,255,.16); flex: none; }
-    .readout { margin-left: auto; min-width: 150px; text-align: right; }
+    .readout { margin-left: auto; min-width: 120px; max-width: 210px; text-align: right; }
     .readout small { display: block; color: #aea6b4; font-size: .75rem; margin-bottom: 4px; }
     .readout strong { display: block; font-size: .93rem; font-weight: 700; }
 
@@ -68,15 +74,21 @@
     .message { position: fixed; z-index: 4; left: 50%; transform: translateX(-50%); bottom: 118px; max-width: min(720px,calc(100% - 32px)); background: rgba(28,24,32,.96); color: #fff3e4; border: 1px solid #fdca9c77; border-radius: 12px; padding: 12px 18px; font-size: .9rem; text-align: center; display: none; }
     .message.show { display: block; }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1080px) {
       .controls { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 12px; }
       .divider { display: none; }
-      .elements { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .elements { display: grid; grid-template-columns: repeat(5, 1fr); }
+      .tests button { flex: 1; }
       .elements button { justify-content: center; padding: 8px 6px; }
-      .el kbd { display: none; }
+      .el.casting i { animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.6); } }
+    .picker small { display: block; color: #aea6b4; font-size: .72rem; margin: 0 0 5px 2px; }
+    .tests { display: flex; gap: 7px; }
+    .spell-test { border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
+    .el kbd { display: none; }
       .readout { text-align: center; min-width: 0; margin: 0; }
       .caption { top: 26%; }
-      .message { bottom: 250px; }
+      .message { bottom: 280px; }
     }
     @media (max-height: 560px) { .top { top: 10px; } .help { top: 66px; } .controls { bottom: 8px; padding: 8px; } .caption { top: 26%; } }
   </style>
@@ -93,24 +105,20 @@
     <div id="connectionStatus" class="status" role="status"><span class="light"></span><span id="connectionText">마이크로비트 연결 전</span></div>
   </header>
 
-  <div id="caption" class="caption"><strong>마법봉을 휘둘러 원소를 깨워요</strong><span>불 · 물 · 빛 · 공기 · 흙<br>아래 버튼이나 숫자 키 1~5로 먼저 시험해 볼 수 있어요</span></div>
+  <div id="caption" class="caption"><strong>아래에서 원소를 고르세요</strong><span id="captionSub">불 · 물 · 빛 · 공기 · 흙 중 하나를 고른 뒤<br>마법봉을 휘두르면(SPELL) 마법이 펼쳐져요</span></div>
   <div id="spell" class="spell" aria-live="polite"><span class="latin"></span><span class="name"></span><span class="chant"></span></div>
 
   <details class="help">
     <summary>마이크로비트 연결 방법</summary>
     <p><b>받는 마이크로비트</b>(컴퓨터에 USB로 연결): MakeCode에서 라디오 그룹을 <strong>71</strong>로 정하고, <strong>라디오 문자열을 받았을 때 → 받은 문자열을 시리얼 한 줄 쓰기</strong>를 넣으세요.</p>
-    <p><b>마법봉 마이크로비트</b>: 같은 그룹 71에서 아래 문자열 중 하나를 <strong>라디오 문자열 보내기</strong>로 보내면 그 원소 마법이 펼쳐져요.</p>
+    <p><b>원소는 이 화면 아래 버튼</b>으로 고르고, <b>마법봉 마이크로비트</b>는 같은 그룹 71에서 아래 세 가지 문자열만 <strong>라디오 문자열 보내기</strong>로 보내면 돼요.</p>
     <table>
-      <tr><td><code>FIRE</code> 또는 <code>1</code></td><td>불</td></tr>
-      <tr><td><code>WATER</code> 또는 <code>2</code></td><td>물</td></tr>
-      <tr><td><code>LIGHT</code> 또는 <code>3</code></td><td>빛</td></tr>
-      <tr><td><code>AIR</code> · <code>WIND</code> 또는 <code>4</code></td><td>공기</td></tr>
-      <tr><td><code>EARTH</code> 또는 <code>5</code></td><td>흙</td></tr>
-      <tr><td><code>SPELL</code></td><td>지금 고른 원소를 다시 시전</td></tr>
-      <tr><td><code>STOP</code> 또는 <code>0</code></td><td>마법 끄기</td></tr>
+      <tr><td><code>SPELL</code></td><td>고른 원소 마법 펼치기 (펼쳐져 있으면 다시 시전)</td></tr>
+      <tr><td><code>STOP</code></td><td>마법 끄기</td></tr>
+      <tr><td><code>NOTHING</code></td><td>아무 변화 없음 (현재 상태 유지)</td></tr>
     </table>
     <p>Chrome 또는 Edge에서 아래 연결 버튼을 누르고 마이크로비트의 <strong>USB 시리얼 포트</strong>를 선택하세요. 다른 시리얼 모니터(MakeCode 콘솔 등)는 닫아 두세요.</p>
-    <p>키보드: <code>1</code>~<code>5</code> 원소 · <code>Space</code> 다시 시전 · <code>0</code>/<code>Esc</code> 끄기 · <code>F</code> 전체화면 · <code>H</code> 버튼 숨기기</p>
+    <p>키보드: <code>1</code>~<code>5</code> 원소 고르기 · <code>Space</code> 시전(SPELL) · <code>0</code>/<code>Esc</code> 끄기 · <code>F</code> 전체화면 · <code>H</code> 버튼 숨기기</p>
   </details>
 
   <div id="message" class="message" role="alert"></div>
@@ -118,7 +126,9 @@
   <div class="controls">
     <button id="connect" type="button">마이크로비트 연결</button>
     <span class="divider"></span>
-    <div class="elements" id="elementButtons"></div>
+    <div class="picker"><small>원소 고르기</small><div class="elements" id="elementButtons"></div></div>
+    <span class="divider"></span>
+    <div class="tests" id="testButtons"></div>
     <div class="readout" aria-live="polite"><small>마지막 명령</small><strong id="lastCommand">명령 대기 중</strong></div>
   </div>
 
@@ -135,32 +145,29 @@
     earth: { name: '흙',   latin: 'TERRA',  title: '대지의 마법',   chant: '“테라 솔리다 — 일어나라!”',      color: '#a5d36b', rgb: [165,211,107], tint: [.10,.12,.035] },
   };
   const ORDER = ['fire', 'water', 'light', 'air', 'earth'];
-  const ALIASES = {
-    FIRE: 'fire', IGNIS: 'fire', '불': 'fire', '1': 'fire',
-    WATER: 'water', AQUA: 'water', '물': 'water', '2': 'water',
-    LIGHT: 'light', LUX: 'light', '빛': 'light', '3': 'light',
-    AIR: 'air', WIND: 'air', VENTUS: 'air', '공기': 'air', '바람': 'air', '4': 'air',
-    EARTH: 'earth', TERRA: 'earth', GROUND: 'earth', '흙': 'earth', '땅': 'earth', '5': 'earth',
-  };
 
   // ───────────────────────── DOM ─────────────────────────
   const $ = (id) => document.getElementById(id);
   const scene = $('scene'), glCanvas = $('gl'), fxCanvas = $('fx'), ctx = fxCanvas.getContext('2d');
   const connectButton = $('connect'), connectionStatus = $('connectionStatus'), connectionText = $('connectionText');
   const lastCommand = $('lastCommand'), caption = $('caption'), message = $('message'), spellBox = $('spell'), eyebrow = $('eyebrow');
-  const buttonBox = $('elementButtons');
+  const buttonBox = $('elementButtons'), captionSub = $('captionSub');
   const buttons = {};
   ORDER.forEach((key, i) => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'el'; b.style.setProperty('--c', ELEMENTS[key].color);
     b.innerHTML = '<i></i>' + ELEMENTS[key].name + ' <kbd>' + (i + 1) + '</kbd>';
-    b.addEventListener('click', () => command(key.toUpperCase(), 'test'));
+    b.addEventListener('click', () => selectElement(key, 'test'));
     buttonBox.appendChild(b); buttons[key] = b;
   });
+  const testBox = $('testButtons');
+  const spellButton = document.createElement('button');
+  spellButton.type = 'button'; spellButton.className = 'spell-test'; spellButton.textContent = 'SPELL 시험';
+  spellButton.addEventListener('click', () => command('SPELL', 'test'));
   const stopButton = document.createElement('button');
-  stopButton.type = 'button'; stopButton.textContent = '끄기';
+  stopButton.type = 'button'; stopButton.textContent = 'STOP 시험';
   stopButton.addEventListener('click', () => command('STOP', 'test'));
-  buttonBox.appendChild(stopButton);
+  testBox.append(spellButton, stopButton);
 
   // ───────────────────────── 상태 ─────────────────────────
   const level = {}, target = {}, growth = {}, burst = {};
@@ -174,28 +181,38 @@
   }
 
   // ───────────────────────── 명령 처리 ─────────────────────────
+  // 마이크로비트는 SPELL / STOP / NOTHING 세 가지만 보냅니다. 원소는 화면에서 고릅니다.
   function parse(raw) {
     const value = String(raw).trim().toUpperCase();
-    if (!value) return null;
-    const tokens = value.split(/[^0-9A-Z가-힣]+/).filter(Boolean);
-    for (const t of tokens) if (ALIASES[t]) return { type: 'cast', element: ALIASES[t] };
-    if (tokens.some(t => t === 'STOP' || t === 'OFF' || t === '0' || t === '끄기')) return { type: 'stop' };
-    if (tokens.some(t => t === 'SPELL' || t === 'CAST' || t === 'GO')) return { type: 'cast', element: selected };
-    return null; // IDLE 등 그 밖의 데이터는 무시
+    if (value.includes('SPELL')) return 'spell';
+    if (value.includes('STOP')) return 'stop';
+    return null; // NOTHING 및 그 밖의 데이터는 현재 상태를 바꾸지 않습니다
   }
   function command(raw, source) {
     const cmd = parse(raw);
     if (!cmd) return;
     const via = source === 'test' ? '버튼 시험' : source === 'key' ? '키보드' : '마이크로비트';
-    if (cmd.type === 'stop') {
+    if (cmd === 'stop') {
       ORDER.forEach(k => target[k] = 0);
       active = null;
-      lastCommand.textContent = '마법 끄기 · ' + via;
+      lastCommand.textContent = 'STOP · 마법 끄기 · ' + via;
       updateButtons();
       return;
     }
-    cast(cmd.element);
-    lastCommand.textContent = ELEMENTS[cmd.element].title + ' · ' + via;
+    cast(selected);
+    lastCommand.textContent = 'SPELL · ' + ELEMENTS[selected].name + ' · ' + via;
+  }
+  function selectElement(key, source) {
+    if (key === selected && active) return;
+    selected = key;
+    document.documentElement.style.setProperty('--accent', ELEMENTS[key].color);
+    eyebrow.textContent = 'MICRO:BIT · ' + ELEMENTS[key].latin;
+    if (active) { cast(key); lastCommand.textContent = ELEMENTS[key].title + '(으)로 바꿈'; return; }
+    caption.classList.remove('hidden');
+    caption.querySelector('strong').textContent = ELEMENTS[key].title + ' 준비 완료';
+    captionSub.innerHTML = '마법봉을 휘두르면(SPELL) ' + ELEMENTS[key].name + ' 마법이 펼쳐져요<br>다른 원소를 고르려면 아래 버튼을 누르세요';
+    lastCommand.textContent = ELEMENTS[key].name + ' 원소 선택 · SPELL 기다리는 중';
+    updateButtons();
   }
   function cast(key) {
     const recast = active === key;
@@ -214,12 +231,12 @@
     castBurst(key);
     updateButtons();
   }
-  function updateButtons() { ORDER.forEach(k => buttons[k].classList.toggle('active', k === active)); }
+  function updateButtons() { ORDER.forEach(k => { buttons[k].classList.toggle('active', k === selected); buttons[k].classList.toggle('casting', k === active); }); }
 
   document.addEventListener('keydown', (ev) => {
     if (ev.target.closest && ev.target.closest('input,textarea')) return;
     const k = ev.key;
-    if (k >= '1' && k <= '5') command(k, 'key');
+    if (k >= '1' && k <= '5') selectElement(ORDER[+k - 1], 'key');
     else if (k === '0' || k === 'Escape') command('STOP', 'key');
     else if (k === ' ') { ev.preventDefault(); command('SPELL', 'key'); }
     else if (k === 'f' || k === 'F') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); }
@@ -737,7 +754,7 @@
     for (let i = 0; i < 3; i++) circleRGB[i] += (tc[i] - circleRGB[i]) * (1 - Math.exp(-4 * dt));
     const [r, g, b] = circleRGB.map(v => v | 0);
     const lv = Math.max(...ORDER.map(k => level[k]));
-    const s = .3 + .7 * lv + .08 * Math.sin(time * 1.8) * (1 - lv);
+    const s = .42 + .58 * lv + .08 * Math.sin(time * 1.8) * (1 - lv);
     const R = unit * .21;
     const col = (a) => `rgba(${r},${g},${b},${Math.max(0, Math.min(1, a))})`;
     ctx.save();
@@ -1142,7 +1159,7 @@
   requestAnimationFrame(frame);
 
   // 테스트/디버그용
-  window.magic = { command, level, growth };
+  window.magic = { command, selectElement, level, growth };
 })();
 </script>
 </body>
