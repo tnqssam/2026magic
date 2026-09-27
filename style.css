@@ -26,7 +26,7 @@ html, body {
   -webkit-user-select: none;
 }
 
-canvas#bg {
+canvas#bg, canvas#trail {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -34,6 +34,7 @@ canvas#bg {
   pointer-events: none;
 }
 canvas#bg { z-index: 0; }
+canvas#trail { z-index: 30; }
 
 /* ---------- 메인 무대 ---------- */
 .stage {

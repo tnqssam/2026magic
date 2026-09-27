@@ -109,6 +109,8 @@ const body = document.body;
 const video = $("#cam");
 const bg = $("#bg");
 const bgCtx = bg.getContext("2d");
+const trailCanvas = $("#trail");
+const trailCtx = trailCanvas.getContext("2d");
 const statusText = $("#status-text");
 const meterFill = $(".swipe-meter .fill");
 const flash = $(".flash");
@@ -131,6 +133,7 @@ const state = {
   modelError: false,
   statusKey: "",
 };
+const trail = []; // 손끝을 따라가는 빛 궤적 (화면 좌표)
 let pointerDown = false;
 let W = 0;
 let H = 0;
@@ -198,6 +201,7 @@ function setPhase(p) {
   body.dataset.phase = p;
   state.energy = 0;
   pointerDown = false;
+  trail.length = 0;
   body.dataset.charging = "off";
   setProgress(0);
 }
@@ -390,7 +394,9 @@ window.addEventListener("pointerdown", () => {
   if (state.phase === "idle") pointerDown = true;
 });
 window.addEventListener("pointermove", (e) => {
-  if (pointerDown) state.motion = Math.min(1, Math.hypot(e.movementX, e.movementY) / 20);
+  if (!pointerDown) return;
+  state.motion = Math.min(1, Math.hypot(e.movementX, e.movementY) / 20);
+  addTrailPoint(e.clientX, e.clientY, performance.now());
 });
 window.addEventListener("pointerup", () => {
   pointerDown = false;
@@ -504,6 +510,8 @@ function trackHands(now) {
       const speed = Math.min(1, move / dt / 1.2);
       state.motion += (speed - state.motion) * 0.3;
     }
+    const p = videoToScreen(1 - tip.x, tip.y); // 거울처럼 좌우 반전
+    addTrailPoint(p.x, p.y, now);
     state.lastPalm = { x: palm.x, y: palm.y };
     state.lastTip = { x: tip.x, y: tip.y };
     state.lastHandAt = now;
@@ -529,9 +537,12 @@ function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
   H = window.innerHeight;
-  bg.width = W * DPR;
-  bg.height = H * DPR;
+  for (const c of [bg, trailCanvas]) {
+    c.width = W * DPR;
+    c.height = H * DPR;
+  }
   bgCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  trailCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
   stars.length = 0;
   const n = Math.round((W * H) / 9000);
   for (let i = 0; i < n; i++) {
@@ -558,6 +569,74 @@ function addParticle(p) {
 function circleCenter() {
   const r = circleWrap.getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 };
+}
+
+// 카메라 영상 좌표(0~1, 좌우 반전 후)를 거울에 보이는 실제 화면 위치로 변환
+function videoToScreen(x, y) {
+  const r = $(".mirror").getBoundingClientRect();
+  const vw = video.videoWidth || 16;
+  const vh = video.videoHeight || 9;
+  const scale = Math.max(r.width / vw, r.height / vh); // object-fit: cover
+  return {
+    x: r.left + r.width / 2 + (x - 0.5) * vw * scale,
+    y: r.top + r.height / 2 + (y - 0.5) * vh * scale,
+  };
+}
+
+function addTrailPoint(x, y, now) {
+  if (state.phase === "intro" || state.phase === "reveal") return;
+  trail.push({ x, y, t: now });
+  const n = 1 + Math.round(state.motion * 3);
+  for (let i = 0; i < n; i++) spawnTrailSpark(x, y);
+}
+
+function spawnTrailSpark(x, y) {
+  addParticle({
+    kind: "spark",
+    x: x + rand(-6, 6),
+    y: y + rand(-6, 6),
+    vx: rand(-0.6, 0.6),
+    vy: rand(-0.9, 0.3),
+    life: rand(0.5, 1.2),
+    size: rand(1.5, 3.5),
+    color: pickOne(["#fff3c4", "#f5d27a", "#c9b8ff"]),
+    front: true,
+  });
+}
+
+function drawTrail(ctx, now) {
+  while (trail.length && now - trail[0].t > 450) trail.shift();
+  if (!trail.length) return;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (let i = 1; i < trail.length; i++) {
+    const a = trail[i - 1];
+    const b = trail[i];
+    if (Math.hypot(b.x - a.x, b.y - a.y) > 250) continue; // 손을 놓쳤다 다시 잡은 경우 잇지 않음
+    const k = 1 - (now - b.t) / 450;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = `rgba(245, 210, 122, ${0.45 * k})`;
+    ctx.lineWidth = 18 * k;
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * k})`;
+    ctx.lineWidth = 5 * k;
+    ctx.stroke();
+  }
+  const tip = trail[trail.length - 1];
+  const k = 1 - (now - tip.t) / 450;
+  const g = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 32);
+  g.addColorStop(0, `rgba(255,255,255,${0.95 * k})`);
+  g.addColorStop(0.3, `rgba(245,210,122,${0.6 * k})`);
+  g.addColorStop(1, "rgba(245,210,122,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(tip.x, tip.y, 32, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function spawnElement(key, x, y, burstMode = false) {
@@ -634,10 +713,11 @@ function updateParticles(dt, t) {
   }
 }
 
-function drawParticles(ctx) {
+function drawParticles(ctx, front) {
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   for (const p of particles) {
+    if (!!p.front !== front) continue;
     const k = 1 - p.age / p.life;
     const alpha = Math.min(1, k * 1.5) * Math.min(1, p.age * 6);
     ctx.globalAlpha = alpha;
@@ -755,7 +835,11 @@ function frame(now) {
 
   bgCtx.clearRect(0, 0, W, H);
   drawStars(bgCtx, t);
-  drawParticles(bgCtx);
+  drawParticles(bgCtx, false);
+
+  trailCtx.clearRect(0, 0, W, H);
+  if (state.phase !== "reveal") drawTrail(trailCtx, now);
+  drawParticles(trailCtx, true);
 
   requestAnimationFrame(frame);
 }
