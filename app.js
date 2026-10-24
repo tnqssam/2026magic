@@ -281,9 +281,22 @@ function renderStats() {
   const total = GEM_ORDER.reduce((s, k) => s + (stats[k] || 0), 0);
   $(".stats").innerHTML =
     `<span>탄생한 마법사 ${total}명</span>` +
-    GEM_ORDER.map((k) => `<span class="stat" style="--c:${ELEMENTS[k].c1}">${symbolSvg(k)}${stats[k] || 0}</span>`).join("");
+    GEM_ORDER.map((k) => `<span class="stat" style="--c:${ELEMENTS[k].c1}">${symbolSvg(k)}${stats[k] || 0}</span>`).join("") +
+    `<button type="button" class="stats-reset" title="탄생한 마법사 수를 0으로 되돌립니다">초기화</button>`;
+}
+function resetStats() {
+  stats = {};
+  saveStats(stats);
+  renderStats();
 }
 renderStats();
+
+// 버튼을 눌러도 마력 충전이 시작되지 않도록 이벤트 전파를 막는다
+$(".stats").addEventListener("pointerdown", (e) => e.stopPropagation());
+$(".stats").addEventListener("click", (e) => {
+  if (!e.target.closest(".stats-reset")) return;
+  resetStats();
+});
 
 // ---------------------------------------------------------------------------
 // 시전 & 결과
@@ -414,9 +427,7 @@ window.addEventListener("keydown", (e) => {
   } else if (e.code === "KeyM") {
     sfx.muted = !sfx.muted;
   } else if (e.code === "KeyR" && e.shiftKey) {
-    stats = {};
-    saveStats(stats);
-    renderStats();
+    resetStats();
   }
 });
 

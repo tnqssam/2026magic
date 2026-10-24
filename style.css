@@ -417,6 +417,18 @@ body[data-phase="reveal"] .next-hint { animation: hint 2.4s ease-in-out 2.8s inf
 }
 .stats .stat { display: inline-flex; align-items: center; gap: 4px; color: var(--c); }
 .stats svg { width: 14px; height: 14px; }
+.stats-reset {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 210, 122, 0.45);
+  background: rgba(12, 8, 36, 0.7);
+  color: var(--gold);
+  cursor: pointer;
+}
+.stats-reset:hover { background: rgba(245, 210, 122, 0.18); color: #fff; }
+.stats:hover { opacity: 1; }
 body[data-phase="reveal"] .stats, body[data-phase="intro"] .stats { opacity: 0; }
 
 /* ---------- 시작 화면 ---------- */
