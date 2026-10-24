@@ -295,7 +295,7 @@ renderStats();
 $(".stats").addEventListener("pointerdown", (e) => e.stopPropagation());
 $(".stats").addEventListener("click", (e) => {
   if (!e.target.closest(".stats-reset")) return;
-  if (confirm("탄생한 마법사 수를 모두 0으로 초기화할까요?")) resetStats();
+  resetStats();
 });
 
 // ---------------------------------------------------------------------------
