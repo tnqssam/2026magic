@@ -20,8 +20,9 @@
       padding: 18px 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(8,11,22,.8); backdrop-filter: blur(20px);
       box-shadow: 0 20px 60px #0007; overflow-y: auto; transition: opacity .5s, transform .5s; scrollbar-width: thin; }
     body.casting .panel { opacity: .38; }
-    body.casting .panel:hover, body.casting .panel:focus-within { opacity: 1; }
-    body.clean .panel { opacity: 0; transform: translateX(-30px); pointer-events: none; }
+    body.casting .panel:hover, body.casting .panel:has(:focus-visible) { opacity: 1; }
+    /* H로 숨기면 마우스·포커스와 상관없이 항상 숨김 */
+    body.clean .panel, body.clean .panel:hover, body.clean .panel:has(:focus-visible) { opacity: 0; transform: translateX(-30px); pointer-events: none; visibility: hidden; transition: opacity .5s, transform .5s, visibility 0s .5s; }
     .brand { display: flex; flex-direction: column; gap: 4px; }
     .eyebrow { font-size: .68rem; letter-spacing: .2em; color: var(--accent); font-weight: 800; transition: color .6s; }
     h1 { font-size: 1.55rem; line-height: 1.2; margin: 0; letter-spacing: -.04em; font-weight: 750; }
@@ -215,7 +216,11 @@
     else if (k === '0' || k === 'Escape') command('STOP', 'key');
     else if (k === ' ') { ev.preventDefault(); command('SPELL', 'key'); }
     else if (k === 'f' || k === 'F') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); }
-    else if (k === 'h' || k === 'H') { document.body.classList.toggle('clean'); resize(); }
+    else if (k === 'h' || k === 'H') {
+      // 숨긴 메뉴의 버튼에 포커스가 남아 있지 않게 합니다
+      if (document.activeElement && document.activeElement.closest('#panel')) document.activeElement.blur();
+      document.body.classList.toggle('clean'); resize();
+    }
   });
 
   // ───────────────────────── Web Serial ─────────────────────────
