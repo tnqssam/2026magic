@@ -62,6 +62,7 @@
     .monitor li.spell b { color: #ffd27e; } .monitor li.stop b { color: #ff9b8a; } .monitor li.ignored b { color: #b9b3c2; }
     .monitor li.hint { white-space: normal; font-family: inherit; opacity: .7; font-size: .74rem; }
     .spacer { flex: 1; }
+    .ver { font-size: .7rem; color: #8f8898; margin-top: -4px; }
     .help { font-size: .82rem; color: #d3cad4; }
     .help summary { cursor: pointer; list-style: none; text-decoration: underline; text-decoration-color: #9d93a3; text-underline-offset: 4px; }
     .help summary::-webkit-details-marker { display: none; }
@@ -117,6 +118,7 @@
       <p>Chrome/Edge에서 연결 버튼을 누르고 <strong>USB 시리얼 포트</strong>를 고르세요. MakeCode 콘솔 등 다른 시리얼 창은 닫아 두세요.</p>
       <p>마법 중에는 메뉴가 흐려져요(마우스를 올리면 선명). <code>H</code> 메뉴 숨기기 · <code>F</code> 전체화면 · <code>1</code>~<code>5</code> 원소 · <code>Space</code> SPELL · <code>0</code> STOP</p>
     </details>
+    <div class="ver">버전 2026.10.26-2</div>
   </aside>
 
   <div id="message" class="message" role="alert"></div>
@@ -287,6 +289,9 @@
     rxDot.classList.add('on'); clearTimeout(rxDotTimer); rxDotTimer = setTimeout(() => rxDot.classList.remove('on'), 160);
   }
   function receiveLine(line, note) {
+    if (!line) return; // 빈 줄은 무시
+    // '시리얼 수 쓰기'처럼 줄바꿈 없이 1·2·3이 이어 붙어 오면("1113") 한 글자씩 차례로 처리합니다
+    if (/^[123]{2,}$/.test(line)) { for (const ch of line) receiveLine(ch, note); return; }
     clearTimeout(quietTimer);
     const cmd = parse(line);
     logRx(line, cmd || 'ignored', note);
@@ -295,18 +300,18 @@
   function receiveText(chunk) {
     commandBuffer += decoder.decode(chunk, { stream: true });
     if (commandBuffer.length > 4096) commandBuffer = commandBuffer.slice(-512);
-    let newline;
-    while ((newline = commandBuffer.indexOf('\n')) !== -1) {
-      const line = commandBuffer.slice(0, newline).replace(/\r/g, '').trim();
-      commandBuffer = commandBuffer.slice(newline + 1);
-      receiveLine(line);
-    }
-    // '시리얼 한 줄 쓰기' 대신 '시리얼 문자열 쓰기'를 써서 줄바꿈이 없어도 잠시 뒤 한 줄로 처리합니다
+    // \r\n, \n, \r 어느 것으로 끝나도 한 줄로 봅니다
+    const lines = commandBuffer.split(/\r\n|\r|\n/);
+    commandBuffer = lines.pop();
+    for (const line of lines) receiveLine(line.trim());
+    // 명령은 한 자리 숫자(1·2·3)라서, 숫자만 와 있으면 기다리지 않고 바로 처리합니다
+    if (/^[123]+$/.test(commandBuffer)) { const digits = commandBuffer; commandBuffer = ''; receiveLine(digits, '줄바꿈 없음'); }
+    // 줄바꿈 없이 오는 경우('시리얼 수 쓰기', '시리얼 문자열 쓰기')는 잠깐 쉬는 틈에 한 줄로 처리합니다
     clearTimeout(flushTimer);
     if (commandBuffer.trim()) flushTimer = setTimeout(() => {
-      const line = commandBuffer.replace(/\r/g, '').trim(); commandBuffer = '';
-      if (line) receiveLine(line, '줄바꿈 없음');
-    }, 350);
+      const line = commandBuffer.trim(); commandBuffer = '';
+      receiveLine(line, '줄바꿈 없음');
+    }, 80);
   }
   async function connect() {
     if (port) { await disconnect(); return; }
