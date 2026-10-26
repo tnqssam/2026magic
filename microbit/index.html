@@ -109,9 +109,9 @@
       <p><b>라디오 그룹 번호</b>는 마법봉과 받는 마이크로비트가 <b>서로 같기만 하면 아무 숫자(0~255)</b>나 돼요. 이 웹앱은 그룹 번호와 상관없어요. 여러 모둠이 한 교실에서 하면 <b>모둠마다 다른 번호</b>를 써야 신호가 섞이지 않아요.</p>
       <p><b>원소는 이 메뉴</b>에서 고르고, <b>마법봉 마이크로비트</b>는 <strong>라디오 수 보내기</strong>로 아래 숫자를 보내면 돼요. (받는 쪽: <strong>라디오 수를 받았을 때 → 시리얼 한 줄 쓰기 (receivedNumber)</strong>)</p>
       <table>
-        <tr><td><code>1</code></td><td>고른 원소 마법 펼치기 (SPELL)</td></tr>
+        <tr><td><code>1</code></td><td>고른 원소 마법 펼치기 (SPELL) · 3초 동안 1이 더 안 오면 저절로 꺼짐</td></tr>
         <tr><td><code>2</code></td><td>마법 끄기 (STOP)</td></tr>
-        <tr><td><code>3</code></td><td>변화 없음 (NOTHING)</td></tr>
+        <tr><td><code>3</code></td><td>기본 상태로 (NOTHING)</td></tr>
       </table>
       <p>글자 <code>SPELL</code> / <code>STOP</code> 으로 보내도 똑같이 돼요.</p>
       <p>Chrome/Edge에서 연결 버튼을 누르고 <strong>USB 시리얼 포트</strong>를 고르세요. MakeCode 콘솔 등 다른 시리얼 창은 닫아 두세요.</p>
@@ -175,7 +175,12 @@
   // ───────────────────────── 명령 처리 ─────────────────────────
   // 마이크로비트는 숫자 1(SPELL) / 2(STOP) / 3(NOTHING)을 보냅니다. 글자 SPELL / STOP 도 그대로 됩니다.
   // 원소는 화면에서 고릅니다.
-  const NUMBER_COMMANDS = { 1: 'spell', 2: 'stop', 3: null };
+  const NUMBER_COMMANDS = { 1: 'spell', 2: 'stop', 3: 'idle' };
+  // 마지막 SPELL(1)을 받고 이 시간이 지나면 저절로 기본 상태로 돌아갑니다
+  const SPELL_HOLD_MS = 3000;
+  // 이 간격보다 촘촘히 SPELL이 계속 오면 같은 주문이 이어지는 것으로 보고 시전 효과를 반복하지 않습니다
+  const SPELL_STREAM_MS = 1200;
+  let holdTimer = null, lastSpellAt = 0;
   function parse(raw) {
     const value = String(raw).trim().toUpperCase();
     // "1", "1.0", 또는 '시리얼 값 쓰기'가 보내는 "x:1" 모양에서 숫자를 꺼냅니다
@@ -183,22 +188,33 @@
     if (num) return NUMBER_COMMANDS[Number(num[1])] ?? null;
     if (value.includes('SPELL')) return 'spell';
     if (value.includes('STOP')) return 'stop';
-    return null; // NOTHING 및 그 밖의 데이터는 현재 상태를 바꾸지 않습니다
+    if (value.includes('NOTHING') || value.includes('IDLE')) return 'idle';
+    return null; // 그 밖의 데이터는 무시합니다
   }
   function command(raw, source) {
     const cmd = parse(raw);
     if (!cmd) return;
     const via = source === 'test' ? '버튼 시험' : source === 'key' ? '키보드' : '마이크로비트';
-    if (cmd === 'stop') {
-      ORDER.forEach(k => target[k] = 0);
-      active = null;
-      document.body.classList.remove('casting');
-      lastCommand.textContent = 'STOP · 마법 끄기 · ' + via;
-      updateButtons();
+    if (cmd === 'stop' || cmd === 'idle') {
+      const was = active;
+      endSpell();
+      if (cmd === 'stop' || was) lastCommand.textContent = (cmd === 'stop' ? 'STOP · 마법 끄기 · ' : 'NOTHING · 기본 상태 · ') + via;
       return;
     }
-    cast(selected);
+    const nowMs = performance.now();
+    const streaming = active === selected && nowMs - lastSpellAt < SPELL_STREAM_MS;
+    lastSpellAt = nowMs;
+    if (!streaming) cast(selected);
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => { endSpell(); lastCommand.textContent = '주문 끝 · 기본 상태'; }, SPELL_HOLD_MS);
     lastCommand.textContent = 'SPELL · ' + ELEMENTS[selected].name + ' · ' + via;
+  }
+  function endSpell() {
+    clearTimeout(holdTimer); holdTimer = null;
+    ORDER.forEach(k => target[k] = 0);
+    active = null;
+    document.body.classList.remove('casting');
+    updateButtons();
   }
   function selectElement(key, source) {
     if (key === selected && active) return;
@@ -209,7 +225,9 @@
     lastCommand.textContent = ELEMENTS[key].name + ' 원소 선택 · SPELL 기다리는 중';
     updateButtons();
   }
+  let castCount = 0;
   function cast(key) {
+    castCount++;
     const recast = active === key;
     selected = key; active = key;
     document.body.classList.add('casting');
@@ -262,7 +280,7 @@
     const li = document.createElement('li'); li.className = kind;
     const time = document.createElement('time'); const d = new Date(); time.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
     const b = document.createElement('b'); b.textContent = line || '(빈 줄)';
-    const em = document.createElement('em'); em.textContent = note || (kind === 'spell' ? '시전' : kind === 'stop' ? '끄기' : /NOTHING|(^|[:=\s])3(\.0+)?$/i.test(line.trim()) ? '변화 없음' : '모르는 신호');
+    const em = document.createElement('em'); em.textContent = note || (kind === 'spell' ? '시전' : kind === 'stop' ? '끄기' : kind === 'idle' ? '기본 상태' : '모르는 신호');
     li.append(time, b, em); rxLog.prepend(li);
     while (rxLog.children.length > 6) rxLog.lastChild.remove();
     rxCount.textContent = (++rxLines) + '줄';
@@ -874,7 +892,7 @@
     for (let i = 0; i < 3; i++) circleRGB[i] += (tc[i] - circleRGB[i]) * (1 - Math.exp(-4 * dt));
     const [r, g, b] = circleRGB.map(v => v | 0);
     const lv = Math.max(...ORDER.map(k => level[k]));
-    const s = (.42 + .58 * lv + .08 * Math.sin(time * 1.8) * (1 - lv)) * (1 - smooth(zoom));
+    const s = lv * (1 - smooth(zoom)); // 기본 상태에서는 마법진도 보이지 않습니다
     if (s < .01) return;
     const R = unit * .21;
     const col = (a) => `rgba(${r},${g},${b},${Math.max(0, Math.min(1, a))})`;
@@ -1208,7 +1226,7 @@
       const speed = target[k] > level[k] ? 2.2 : 2.6;
       level[k] += (target[k] - level[k]) * (1 - Math.exp(-speed * dt));
       if (!target[k] && level[k] < .002) level[k] = 0;
-      growth[k] = Math.max(0, Math.min(1, growth[k] + (target[k] ? dt / 5.5 : -dt / 2.2)));
+      growth[k] = Math.max(0, Math.min(1, growth[k] + (target[k] ? dt / 2.2 : -dt / 2.2)));
       burst[k] *= Math.exp(-dt * 2.4);
     });
     if (active && growth[active] >= 1 && lastCommand.textContent.indexOf('완전') === -1 && lastCommand.textContent.indexOf('끄기') === -1) {
@@ -1262,7 +1280,7 @@
   requestAnimationFrame(frame);
 
   // 테스트/디버그용
-  window.magic = { command, selectElement, receiveText, level, growth };
+  window.magic = { command, selectElement, receiveText, level, growth, casts: () => castCount };
 })();
 </script>
 </body>
