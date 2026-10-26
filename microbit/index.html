@@ -111,14 +111,14 @@
       <p><b>원소는 이 메뉴</b>에서 고르고, <b>마법봉 마이크로비트</b>는 <strong>라디오 수 보내기</strong>로 아래 숫자를 보내면 돼요. (받는 쪽: <strong>라디오 수를 받았을 때 → 시리얼 한 줄 쓰기 (receivedNumber)</strong>)</p>
       <table>
         <tr><td><code>1</code></td><td>고른 원소 마법 펼치기 (SPELL) · 3초 동안 1이 더 안 오면 저절로 꺼짐</td></tr>
-        <tr><td><code>2</code></td><td>마법 끄기 (STOP)</td></tr>
-        <tr><td><code>3</code></td><td>기본 상태로 (NOTHING)</td></tr>
+        <tr><td><code>2</code></td><td>멈추기 (STOP) · 원소마다 다른 마무리: 불은 재가 되고, 물은 터져 흩어지고, 빛은 한 점으로 모였다 번쩍, 바람은 풀려 잎이 떨어지고, 흙은 무너져 내림</td></tr>
+        <tr><td><code>3</code></td><td>기본 상태 (NOTHING) · 조용히 서서히 사라짐</td></tr>
       </table>
       <p>글자 <code>SPELL</code> / <code>STOP</code> 으로 보내도 똑같이 돼요.</p>
       <p>Chrome/Edge에서 연결 버튼을 누르고 <strong>USB 시리얼 포트</strong>를 고르세요. MakeCode 콘솔 등 다른 시리얼 창은 닫아 두세요.</p>
       <p>마법 중에는 메뉴가 흐려져요(마우스를 올리면 선명). <code>H</code> 메뉴 숨기기 · <code>F</code> 전체화면 · <code>1</code>~<code>5</code> 원소 · <code>Space</code> SPELL · <code>0</code> STOP</p>
     </details>
-    <div class="ver">버전 2026.10.26-2</div>
+    <div class="ver">버전 2026.10.26-3</div>
   </aside>
 
   <div id="message" class="message" role="alert"></div>
@@ -166,6 +166,11 @@
   // ───────────────────────── 상태 ─────────────────────────
   const level = {}, target = {}, growth = {}, burst = {};
   ORDER.forEach(k => { level[k] = 0; target[k] = 0; growth[k] = 0; burst[k] = 0; });
+  // 멈추기(STOP) 마무리 연출의 진행도 (-1 = 진행 중 아님, 0→1)
+  const endProg = {}; ORDER.forEach(k => endProg[k] = -1);
+  const END_SEC = { fire: 2.8, water: 2.4, light: 2.2, air: 2.6, earth: 2.8 };
+  const END_TEXT = { fire: '불이 재가 되어 사라짐', water: '물방울로 흩어짐', light: '빛이 한 점으로 모였다 사라짐', air: '바람이 잦아들고 나뭇잎이 떨어짐', earth: '바위가 무너져 내림' };
+  const ending = () => ORDER.some(k => endProg[k] >= 0);
   let selected = 'fire', active = null, shake = 0, messageTimer;
   const circleRGB = ELEMENTS.fire.rgb.slice();
 
@@ -197,10 +202,18 @@
     const cmd = parse(raw);
     if (!cmd) return;
     const via = source === 'test' ? '버튼 시험' : source === 'key' ? '키보드' : '마이크로비트';
-    if (cmd === 'stop' || cmd === 'idle') {
+    if (cmd === 'stop') {
+      // 멈추기: 원소마다 다른 마무리 연출 (불은 재가 되어 사라지는 식)
+      const k = active;
+      if (k) { finale(k); lastCommand.textContent = 'STOP · ' + END_TEXT[k] + ' · ' + via; }
+      else if (!ending()) { endSpell(); lastCommand.textContent = 'STOP · 마법 끄기 · ' + via; }
+      return;
+    }
+    if (cmd === 'idle') {
+      // 기본 상태: 조용히 서서히 사라짐
       const was = active;
       endSpell();
-      if (cmd === 'stop' || was) lastCommand.textContent = (cmd === 'stop' ? 'STOP · 마법 끄기 · ' : 'NOTHING · 기본 상태 · ') + via;
+      if (was) lastCommand.textContent = 'NOTHING · 기본 상태 · ' + via;
       return;
     }
     const nowMs = performance.now();
@@ -213,9 +226,16 @@
   }
   function endSpell() {
     clearTimeout(holdTimer); holdTimer = null;
-    ORDER.forEach(k => target[k] = 0);
+    ORDER.forEach(k => { if (endProg[k] < 0) target[k] = 0; }); // 마무리 연출 중인 원소는 끝까지 보여 줍니다
     active = null;
-    document.body.classList.remove('casting');
+    if (!ending()) document.body.classList.remove('casting');
+    updateButtons();
+  }
+  function finale(k) {
+    clearTimeout(holdTimer); holdTimer = null;
+    active = null;
+    endProg[k] = 0; target[k] = 1;
+    finaleStart(k);
     updateButtons();
   }
   function selectElement(key, source) {
@@ -232,6 +252,7 @@
     castCount++;
     const recast = active === key;
     selected = key; active = key;
+    ORDER.forEach(k => endProg[k] = -1);
     document.body.classList.add('casting');
     ORDER.forEach(k => target[k] = k === key ? 1 : 0);
     if (!recast) growth[key] = Math.min(growth[key], .15);
@@ -388,7 +409,7 @@
   const COMMON = `
     precision highp float;
     uniform vec2 uRes; uniform vec2 uBase; uniform float uScale;
-    uniform float uTime; uniform float uLevel; uniform float uGrowth; uniform float uBurst;
+    uniform float uTime; uniform float uLevel; uniform float uGrowth; uniform float uBurst; uniform float uEnd;
     uniform vec3 uTint;
     float hash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
     vec2 hash2(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973)); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.xx + p3.yz) * p3.zy); }
@@ -444,14 +465,16 @@
     }
     void main(){
       vec2 p = P(); float t = uTime, l = uLevel, g = grow();
-      float H = .14 + .6*g + .08*uBurst;
-      float w = .13 + .05*l + .03*uBurst;
+      float E = uEnd; // 멈추기(STOP) 진행도: 불길이 주저앉고 재와 연기만 남습니다
+      l *= 1. - .55*smoothstep(.15, .7, E);
+      float H = (.14 + .6*g + .08*uBurst) * (1. - .92*smoothstep(0., .6, E));
+      float w = (.13 + .05*l + .03*uBurst) * (1. - .35*E);
       float h = flame(p, H, w, t, 0.);
       h = max(h, flame(p - vec2(-.07*g, 0.), H*.62, w*.55, t*1.1, 3.1) * .9);
       h = max(h, flame(p - vec2(.075*g, 0.), H*.7, w*.55, t*1.05, 6.7) * .9);
       h = max(h, flame(p - vec2(-.17*g, 0.), H*.45, w*.5, t*.95, 9.2) * .85);
       h = max(h, flame(p - vec2(.18*g, 0.), H*.4, w*.5, t*1.15, 12.4) * .85);
-      h *= l;
+      h *= l * (1. - smoothstep(.4, .72, E)); // 불길은 완전히 꺼지고 재와 연기만 남습니다
       vec3 col = ramp(h) * smoothstep(.0, .12, h) * 1.25;
       float glow = exp(-pow(p.x/(.2 + .22*g), 2.) - pow((p.y - H*.3)/(H*.75 + .06), 2.));
       col += vec3(.55,.12,.02) * glow * .32 * l;
@@ -461,7 +484,14 @@
       float smoke = fbm(vec2(p.x*2.4, p.y*1.7 - t*.55));
       col += vec3(.6,.13,.02) * smoothstep(.45, .9, smoke) * exp(-max(p.y, 0.)*1.3) * .45 * l * g;
       col += vec3(.7,.18,.02) * exp(-abs(p.y)*7.) * (.6 + .4*fbm3(vec2(p.x*6. - t*.3, t*.4))) * .35 * l * g;
-      gl_FragColor = vec4(col, 0.);
+      float ashT = smoothstep(.05, .55, E);
+      col = mix(col, vec3(dot(col, vec3(.3,.5,.2))) * vec3(.6,.55,.5), ashT * .75);
+      float sm = fbm(vec2(p.x*3. + sin(p.y*2. + t)*.25, p.y*2.2 - t*.9));
+      float smMask = exp(-pow(p.x/(.14 + .3*max(p.y, 0.)), 2.)) * smoothstep(-.02, .08, p.y) * exp(-max(p.y, 0.)*1.1);
+      float sa = smoothstep(.38, .8, sm) * smMask * smoothstep(.0, .3, E) * (1. - smoothstep(.65, 1., E)) * .75;
+      col = vec3(.2,.19,.18) * sa + col * (1. - sa);
+      float fin = 1. - smoothstep(.75, 1., E);
+      gl_FragColor = vec4(col * fin, sa * fin);
     }`;
 
   // 물: 떠오르는 물의 구체 + 나선 물줄기 + 물결
@@ -477,8 +507,9 @@
     }
     void main(){
       vec2 p = P(); float t = uTime, l = uLevel, g = grow();
-      vec2 c = vec2(0., .2 + .14*g + .012*sin(t*1.3));
-      float R = (.045 + .115*g) * (1. + .12*uBurst);
+      float E = uEnd; // 멈추기: 구체가 부풀었다가 터지고 바닥에 물결만 남습니다
+      vec2 c = vec2(0., .2 + .14*g + .012*sin(t*1.3) - .06*smoothstep(0., .3, E));
+      float R = max(1e-4, (.045 + .115*g) * (1. + .12*uBurst) * (1. + .22*smoothstep(0., .22, E)) * (1. - smoothstep(.22, .32, E)));
       vec2 d = p - c; float a = atan(d.y, d.x);
       float wob = 1. + .035*sin(a*3. + t*2.1) + .025*sin(a*5. - t*2.9) + .012*sin(a*9. + t*4.3);
       float r = length(d) / (R*wob);
@@ -498,7 +529,7 @@
         if (depth < 0. && r < 1.) s *= .2;
         streams += mix(vec3(.2,.6,1.), vec3(.75,.95,1.), foam) * s * 1.25;
       }
-      vec3 col = streams * l;
+      vec3 col = streams * l * (1. - smoothstep(0., .3, E));
       float alpha = 0.;
       float halo = exp(-max(r - 1., 0.) * 4.) * smoothstep(0., 1., r);
       col += vec3(.08,.35,.9) * halo * .35 * g * l;
@@ -521,14 +552,15 @@
       }
       float e = length(vec2(p.x, p.y/.3));
       float rip = pow(sin(e*70. - t*5.) * .5 + .5, 6.) * exp(-e*5.) * smoothstep(.0, .04, e);
-      col += vec3(.3,.72,1.) * rip * .55 * l;
+      col += vec3(.3,.72,1.) * rip * .55 * l * (1. + 2.5*smoothstep(.3, .5, E));
       col += vec3(.15,.5,1.) * exp(-e*e/.02) * .35 * l;
       col += vec3(.4,.8,1.) * uBurst * exp(-e*e/.06) * .45;
       float wide = caustic(p*1.1 + vec2(0., t*.015), t*.35 + 5.);
       float shaft = .5 + .5*sin(p.x*9. + sin(p.y*2. + t*.4)*1.5 + t*.3);
       col += vec3(.08,.38,.8) * wide * .22 * l * g * (1. - alpha);
       col += vec3(.05,.2,.45) * pow(shaft, 4.) * smoothstep(-.1, 1., p.y) * .12 * l * g * (1. - alpha);
-      gl_FragColor = vec4(col, alpha);
+      float fin = 1. - smoothstep(.7, 1., E);
+      gl_FragColor = vec4(col * fin, alpha * fin);
     }`;
 
   // 빛: 위에서 쏟아지는 빛줄기 + 빛나는 핵 + 회전하는 빛의 만다라
@@ -540,6 +572,10 @@
     void main(){
       vec2 p = P(); float t = uTime, l = uLevel, g = grow();
       vec2 c = vec2(0., .38 + .015*sin(t*.8));
+      float E = uEnd; // 멈추기: 만다라와 빛줄기가 핵으로 빨려 들어간 뒤 번쩍이며 사라집니다
+      float shrink = 1. - smoothstep(0., .45, E);
+      float flash = exp(-pow((E - .47)/.05, 2.));
+      g *= mix(1., shrink, step(.001, E));
       vec2 d = p - c; float r = length(d); float a = atan(d.y, d.x);
       vec3 col = vec3(0.);
       // 위에서 쏟아지는 빛줄기
@@ -550,7 +586,8 @@
       col += vec3(1.,.9,.68) * rays * cone * smoothstep(2.5, 1., sr) * .75 * g;
       col += vec3(1.,.86,.6) * cone * smoothstep(2.6, 1.2, sr) * .08 * g;
       // 빛의 핵
-      col += vec3(1.,.98,.92) * exp(-r*r / .0012) * 1.5;
+      col *= shrink;
+      col += vec3(1.,.98,.92) * exp(-r*r / (.0012 + .03*flash)) * (1.5 + 3.*flash);
       col += vec3(1.,.87,.6) * exp(-r*r / (.005 + .01*g)) * .55;
       col += vec3(1.,.78,.45) * (.012 / (r + .012)) * .28 * (.5 + .5*g);
       float soft = sin(a*7. + t*.4)*.5 + sin(a*11. - t*.3)*.5;
@@ -575,17 +612,20 @@
       col += vec3(1.,.95,.85) * uBurst * exp(-r*r/.06) * .6;
       float e = length(vec2(p.x, p.y/.3));
       col += vec3(1.,.85,.55) * exp(-e*e/.05) * .22 * g;
-      gl_FragColor = vec4(col * l, 0.);
+      float br2 = (E - .47) * 2.6;
+      col += vec3(1.,.95,.8) * exp(-pow((r - br2)/.045, 2.)) * step(.47, E) * (1. - smoothstep(.5, 1., E)) * 1.3;
+      gl_FragColor = vec4(col * l * (1. - smoothstep(.55, .95, E) * (1. - flash)), 0.);
     }`;
 
   // 공기: 소용돌이치는 회오리바람
   const AIR = `
     void main(){
       vec2 p = P(); float t = uTime, l = uLevel, g = grow();
-      float H = .2 + .5*g + .05*uBurst;
+      float E = uEnd; // 멈추기: 회오리가 넓게 풀리며 옅어집니다
+      float H = .2 + .5*g + .05*uBurst + .15*E;
       float y = p.y; float yn = clamp(y / H, 0., 1.);
       float cx = (.035*sin(y*5. - t*1.7) + .02*sin(y*11. + t*2.3)) * yn * (.4 + g);
-      float rad = mix(.028, .07 + .18*g, pow(yn, 1.25)) * (1. + .07*sin(y*18. - t*6.));
+      float rad = mix(.028, .07 + .18*g, pow(yn, 1.25)) * (1. + .07*sin(y*18. - t*6.)) * (1. + 2.2*smoothstep(0., 1., E));
       float x = (p.x - cx) / rad;
       vec3 col = vec3(0.); float alpha = 0.;
       float vert = smoothstep(-.02, .03, y) * (1. - smoothstep(H*.82, H*1.05, y));
@@ -598,7 +638,7 @@
         float s1 = smoothstep(.46, .78, f1); float s2 = smoothstep(.5, .8, f2);
         float limb = 1. / (z + .3);
         float dens = (s1 + s2*.45) * limb * .33 + .07*limb;
-        dens *= vert * smoothstep(1., .8, abs(x));
+        dens *= vert * smoothstep(1., .8, abs(x)) * (1. - smoothstep(.05, .85, E));
         vec3 c = mix(vec3(.45,.8,.85), vec3(.93,1.,1.), s1);
         alpha = clamp(dens * .45, 0., .75) * l;
         col = c * clamp(dens, 0., 1.6) * l;
@@ -612,7 +652,8 @@
       col += vec3(.6,1.,.95) * uBurst * exp(-er*er/.05) * .35;
       float band = fbm(vec2(p.x*1.4 - t*1.9, p.y*8. + sin(p.x*2. - t)*.6));
       col += vec3(.45,.85,.82) * smoothstep(.55, .85, band) * .14 * l * g;
-      gl_FragColor = vec4(col, alpha);
+      float fin = 1. - smoothstep(.7, 1., E);
+      gl_FragColor = vec4(col * fin, alpha * fin);
     }`;
 
   // 흙: 땅을 뚫고 솟아오르는 바위 첨탑 + 빛나는 균열 + 흙먼지
@@ -649,19 +690,20 @@
     void over(inout vec3 col, inout float a, vec4 s){ col = s.rgb + col*(1. - s.a); a = s.a + a*(1. - s.a); }
     void main(){
       vec2 p = P(); float t = uTime, l = uLevel, g = clamp(uGrowth, 0., 1.);
+      float E = uEnd; // 멈추기: 첨탑이 차례로 땅속으로 무너지고 흙먼지가 크게 일어납니다
       vec3 col = vec3(0.); float alpha = 0.;
       // 땅의 균열
       vec2 e = vec2(p.x, p.y/.22); float er = length(e);
       float R = .1 + 1.4*smoothstep(0., .6, g);
       float spread = smoothstep(R, R*.6, er) * smoothstep(.06, -.005, p.y);
       float cr = ridge(e*3.2 + vec2(0., 7.));
-      float crack = smoothstep(.88, .97, cr) * spread;
+      float crack = smoothstep(.88, .97, cr) * spread * (1. - smoothstep(.2, .8, E));
       float pulse = .6 + .4*sin(er*18. - t*3.);
       col += vec3(1.,.58,.15) * crack * pulse * 1.4;
       col += vec3(.8,.35,.08) * smoothstep(.7, .97, cr) * spread * .15;
       col += vec3(1.,.6,.2) * exp(-er*er/.02) * .5 * smoothstep(.06, -.005, p.y);
       // 바위 첨탑 (뒤 → 앞)
-      #define SP(x, y, w, h, tilt, delay, seed, depth) over(col, alpha, spire(p, x, y, w, (h)*backOut(g*1.7 - (delay)), tilt, seed, depth))
+      #define SP(x, y, w, h, tilt, delay, seed, depth) over(col, alpha, spire(p, x, y - (h)*.9*smoothstep((delay)*.6, (delay)*.6 + .55, E), w, (h)*backOut(g*1.7 - (delay)), tilt, seed, depth))
       SP(-.68, .08, .06, .36, -.10, .25, 11., .75);
       SP(-.4, .09, .05, .42, .06, .15, 23., .75);
       SP( .38, .085, .055, .4, -.05, .2, 37., .75);
@@ -674,11 +716,12 @@
       col *= l; alpha *= l;
       // 흙먼지 구름
       float dust = fbm(vec2(p.x*2.6 - t*.08, p.y*3.2 - t*.25));
-      float dmask = exp(-max(p.y, 0.)*(6. - 3.*uBurst)) * smoothstep(-.1, .02, p.y + .05);
-      float da = smoothstep(.35, .85, dust) * dmask * (.55 + .4*uBurst) * l * smoothstep(0., .3, g + uBurst);
+      float dmask = exp(-max(p.y, 0.)*(6. - 3.*uBurst - 3.5*smoothstep(0., .5, E))) * smoothstep(-.1, .02, p.y + .05);
+      float da = min(.9, smoothstep(.35, .85, dust) * dmask * (.55 + .4*uBurst + 1.2*smoothstep(0., .4, E)) * l * smoothstep(0., .3, g + uBurst));
       col = vec3(.36,.28,.2) * da + col * (1. - da); alpha = da + alpha*(1. - da);
       col += vec3(1.,.7,.35) * uBurst * exp(-er*er/.08) * .35 * l;
-      gl_FragColor = vec4(col, alpha);
+      float fin = 1. - smoothstep(.75, 1., E);
+      gl_FragColor = vec4(col * fin, alpha * fin);
     }`;
 
   let gl = null, quad = null, programs = {}, bgProgram = null;
@@ -695,7 +738,7 @@
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
     const u = {};
-    ['uRes','uBase','uScale','uTime','uLevel','uGrowth','uBurst','uTint'].forEach(n => u[n] = gl.getUniformLocation(prog, n));
+    ['uRes','uBase','uScale','uTime','uLevel','uGrowth','uBurst','uTint','uEnd'].forEach(n => u[n] = gl.getUniformLocation(prog, n));
     return { prog, u };
   }
   function initGL() {
@@ -876,8 +919,47 @@
       life: rand(2, 4), max: 4, size: rand(1.5, 3.5) });
   }
 
-  const KIND = { ember: 'fire', bubble: 'water', drop: 'water', ripple: 'water', sparkle: 'light', mote: 'light', bokeh: 'light',
+  const KIND = { ash: 'fire', fleaf: 'air', ember: 'fire', bubble: 'water', drop: 'water', ripple: 'water', sparkle: 'light', mote: 'light', bokeh: 'light',
     streak: 'air', leaf: 'air', gust: 'air', rock: 'earth', pebble: 'earth', dust: 'earth' };
+  // ── 멈추기 마무리 연출 ──
+  const at = (a, b, x) => a < x && b >= x; // 진행도가 x를 막 지났는지
+  function finaleStart(k) {
+    if (k === 'fire') for (let i = 0; i < 30; i++) spawnAsh(0);
+    if (k === 'air') {
+      for (const p of parts) if (p.k === 'leaf') { const t = tornado(Math.min(p.h, t0H())); p.k = 'fleaf'; p.x = t.x + Math.sin(p.th) * t.rad * p.out; p.y = baseY - p.h * unit; p.vx = Math.cos(p.th) * 120; p.vy = -rand(20, 80); p.life = rand(3, 4.5); p.max = p.life; }
+      for (let i = 0; i < 26; i++) spawnFallingLeaf();
+      for (let i = 0; i < 14; i++) spawnGust();
+    }
+    if (k === 'earth') { shake = Math.max(shake, 1); for (let i = 0; i < 30; i++) spawnPebble(); }
+  }
+  function finaleTick(k, a, b, dt) {
+    if (k === 'fire') { let n = (b < .7 ? 90 : 0) * dt; while (n-- > Math.random()) spawnAsh(b); }
+    if (k === 'water' && at(a, b, .3)) {
+      for (let i = 0; i < 90; i++) spawnOrbDrop();
+      for (let i = 0; i < 3; i++) setTimeout(() => spawnRipple(cx, baseY, unit * rand(.25, .45), 1), 350 + i * 250);
+    }
+    if (k === 'light' && at(a, b, .47)) { for (let i = 0; i < 70; i++) spawnSparkle(true); burst.light = .6; }
+    if (k === 'earth') {
+      if (b < .75) shake = Math.max(shake, .45);
+      let n = (b < .7 ? 50 : 0) * dt; while (n-- > Math.random()) spawnDust();
+      if (at(a, b, .3) || at(a, b, .55)) for (let i = 0; i < 14; i++) spawnPebble();
+    }
+  }
+  function spawnAsh(prog) {
+    const h = (.05 + .55 * Math.random()) * (1 - prog);
+    add({ k: 'ash', x: cx + rand(-1, 1) * unit * (.05 + .17 * (1 - h)), y: baseY - h * unit, vx: rand(-30, 30), vy: -rand(20, 90) * (unit / 800),
+      life: rand(2.2, 3.6), max: 3.6, size: rand(2, 5.5) * (unit / 800), rot: rand(0, 6.28), spin: rand(-4, 4), ph: rand(0, 6.28), hot: rand(.5, 1.2) });
+  }
+  function spawnOrbDrop() {
+    const a = rand(0, Math.PI * 2), sp = rand(150, 520) * (unit / 800), R = unit * .14;
+    add({ k: 'drop', x: cx + Math.cos(a) * R * .6, y: orbY() + Math.sin(a) * R * .6 + unit * .06, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - rand(80, 260) * (unit / 800), life: 3, max: 3 });
+  }
+  function spawnFallingLeaf() {
+    const t = tornado(rand(.05, t0H())), th = rand(0, 6.28);
+    add({ k: 'fleaf', x: t.x + Math.sin(th) * t.rad * rand(.8, 1.4), y: baseY - rand(.05, t0H()) * unit, vx: rand(-160, 160), vy: -rand(20, 100),
+      life: rand(3, 4.5), max: 4.5, size: rand(5, 9) * (unit / 800), rot: rand(0, 6.28), spin: rand(-5, 5), ph: rand(0, 6.28),
+      hue: Math.random() < .7 ? [rand(110, 160) | 0, rand(200, 225) | 0, rand(110, 140) | 0] : [rand(220, 245) | 0, rand(200, 225) | 0, rand(120, 150) | 0] });
+  }
   function castBurst(key) {
     if (key === 'fire') { for (let i = 0; i < 80; i++) spawnEmber(true); }
     if (key === 'water') { for (let i = 0; i < 46; i++) spawnDrop(); for (let i = 0; i < 3; i++) setTimeout(() => spawnRipple(cx, baseY, unit * .3, 1), i * 220); }
@@ -1045,6 +1127,15 @@
           if (p.vy > 0 && p.y > baseY + unit * .02) { dead = true; if (Math.random() < .25) spawnRipple(p.x, p.y, unit * .04, .6); }
           dead = dead || p.life <= 0; break;
         case 'ripple': p.age += dt; dead = p.age > p.max; break;
+        case 'ash':
+          p.life -= dt; p.rot += p.spin * dt; p.hot -= dt * .9;
+          p.vx += Math.sin(time * 2 + p.ph) * 30 * dt; p.vy = p.vy * Math.pow(.6, dt) + 14 * u8 * dt;
+          p.x += p.vx * dt; p.y += p.vy * dt; dead = p.life <= 0; break;
+        case 'fleaf':
+          p.life -= dt; p.rot += p.spin * dt; p.vx *= Math.pow(.5, dt); p.vy = Math.min(p.vy + 140 * u8 * dt, 70 * u8);
+          p.x += (p.vx + Math.sin(time * 2.5 + p.ph) * 45) * dt; p.y += p.vy * dt;
+          if (p.y > baseY) { p.y = baseY; p.vy = 0; p.spin *= .9; }
+          dead = p.life <= 0; break;
         case 'gust': p.life -= dt; p.x += p.vx * dt; p.ph += dt * 3; dead = p.x - p.len > W + 20 || p.life <= 0; break;
         case 'sparkle':
           p.life -= dt; p.vx *= Math.pow(.25, dt); p.vy = p.vy * Math.pow(.25, dt) - 6 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.spin * dt;
@@ -1069,7 +1160,7 @@
             p.x = p.x0 + p.drift * p.age + Math.sin(time * .6 + p.ph) * 10;
             p.y = baseY + 20 - (p.hT * unit + 20) * rise + Math.sin(time * 1.3 + p.ph) * 7 - p.age * 4;
             p.alpha = Math.min(1, p.age * 3);
-            if (p.age > p.life || level.earth < .35) { p.fall = true; p.vx = p.drift; p.vy = rand(-30, 10); }
+            if (p.age > p.life || level.earth < .35 || endProg.earth >= 0) { p.fall = true; p.vx = p.drift; p.vy = rand(-30, 10); }
           } else {
             p.vy += 1200 * u8 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
             if (p.y > baseY) p.alpha -= dt * 3;
@@ -1194,12 +1285,33 @@
           }
           break;
         }
+        case 'ash': {
+          const a = Math.min(1, p.life / .8) * Math.min(1, (p.max - p.life) * 4 + .2);
+          if (p.hot > 0) glowDot(EMBER, p.x, p.y, p.size * 3.5, a * Math.min(1, p.hot));
+          ctx.globalAlpha = a * .8;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, .55 + .45 * Math.abs(Math.sin(p.rot * 1.7)));
+          const heat = Math.max(0, Math.min(1, p.hot));
+          ctx.fillStyle = `rgb(${120 + 120 * heat | 0},${112 + 40 * heat | 0},${104 - 40 * heat | 0})`;
+          ctx.fillRect(-p.size, -p.size * .6, p.size * 2, p.size * 1.2);
+          ctx.restore();
+          break;
+        }
+        case 'fleaf': {
+          const a = Math.min(1, p.life / .8);
+          ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = a;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, .45 + .55 * Math.abs(Math.sin(p.rot * 1.3)));
+          const [lr, lg, lb] = p.hue;
+          ctx.fillStyle = `rgb(${lr},${lg},${lb})`;
+          ctx.beginPath(); ctx.moveTo(-p.size, 0); ctx.quadraticCurveTo(0, -p.size * .7, p.size, 0); ctx.quadraticCurveTo(0, p.size * .7, -p.size, 0); ctx.fill();
+          ctx.restore();
+          break;
+        }
         case 'dust': glowDot(DUST, p.x, p.y, p.size * 3, Math.sin(Math.PI * (1 - p.life / p.max)) * .45); break;
       }
     }
     for (const x of [sctx, gctx]) { x.globalAlpha = 1; x.globalCompositeOperation = 'source-over'; }
   }
-  const SOLID = new Set(['rock', 'leaf', 'pebble']);
+  const SOLID = new Set(['rock', 'leaf', 'pebble', 'fleaf']);
   const t0H = () => .2 + .5 * smooth(growth.air);
 
   // ───────────────────────── 예비(WebGL 없음) 효과 ─────────────────────────
@@ -1238,7 +1350,18 @@
       lastCommand.textContent = ELEMENTS[active].title + ' · 완전히 펼쳐짐';
     }
 
-    zoom += ((active ? 1 : 0) - zoom) * (1 - Math.exp(-(active ? 1.6 : 1.2) * dt));
+    ORDER.forEach(k => {
+      if (endProg[k] < 0) return;
+      const before = endProg[k];
+      endProg[k] = Math.min(1, endProg[k] + dt / END_SEC[k]);
+      finaleTick(k, before, endProg[k], dt);
+      if (endProg[k] >= 1) {
+        endProg[k] = -1; level[k] = 0; target[k] = 0; growth[k] = 0;
+        if (!active && !ending()) { document.body.classList.remove('casting'); lastCommand.textContent += ' · 끝'; }
+      }
+    });
+    const showing = active || ending();
+    zoom += ((showing ? 1 : 0) - zoom) * (1 - Math.exp(-(showing ? 1.6 : 1.2) * dt));
     layout();
     shake *= Math.exp(-dt * 4);
     if (shake > .01) {
@@ -1252,13 +1375,14 @@
         const tint = [0, 0, 0]; let amb = 0, bmax = 0;
         ORDER.forEach(k => { const t = ELEMENTS[k].tint; for (let i = 0; i < 3; i++) tint[i] += t[i] * level[k]; amb += level[k]; bmax = Math.max(bmax, burst[k]); });
         const btint = [0, 0, 0]; ORDER.forEach(k => { const t = ELEMENTS[k].tint; for (let i = 0; i < 3; i++) btint[i] += t[i] * burst[k]; });
-        const setCommon = (pr, l, g, b) => {
+        const setCommon = (pr, l, g, b, e) => {
           gl.useProgram(pr.prog);
           gl.uniform2f(pr.u.uRes, glCanvas.width, glCanvas.height);
           gl.uniform2f(pr.u.uBase, cx * gr, (H - baseY) * gr);
           gl.uniform1f(pr.u.uScale, unit * gr);
           gl.uniform1f(pr.u.uTime, time % 1000);
           gl.uniform1f(pr.u.uLevel, l); gl.uniform1f(pr.u.uGrowth, g); gl.uniform1f(pr.u.uBurst, b);
+          gl.uniform1f(pr.u.uEnd, e || 0);
         };
         gl.disable(gl.BLEND);
         setCommon(bgProgram, 1, 0, bmax);
@@ -1268,7 +1392,7 @@
         gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         ORDER.forEach(k => {
           if (level[k] < .002 && burst[k] < .01) return;
-          setCommon(programs[k], level[k], growth[k], burst[k]);
+          setCommon(programs[k], level[k], growth[k], burst[k], Math.max(0, endProg[k]));
           gl.drawArrays(gl.TRIANGLES, 0, 6);
         });
       } catch (e) { console.warn(e); gl = null; }
@@ -1285,7 +1409,7 @@
   requestAnimationFrame(frame);
 
   // 테스트/디버그용
-  window.magic = { command, selectElement, receiveText, level, growth, casts: () => castCount };
+  window.magic = { command, selectElement, receiveText, level, growth, endProg, casts: () => castCount };
 })();
 </script>
 </body>
