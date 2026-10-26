@@ -105,14 +105,15 @@
     <div class="spacer"></div>
     <details class="help">
       <summary>마이크로비트 연결 방법</summary>
-      <p><b>받는 마이크로비트</b>(컴퓨터에 USB 연결): <strong>라디오 그룹 설정</strong> → <strong>라디오 문자열을 받았을 때 → 받은 문자열을 시리얼 한 줄 쓰기</strong></p>
+      <p><b>받는 마이크로비트</b>(컴퓨터에 USB 연결): <strong>라디오 그룹 설정</strong> → <strong>라디오 수를 받았을 때 → 시리얼 한 줄 쓰기 (receivedNumber)</strong></p>
       <p><b>라디오 그룹 번호</b>는 마법봉과 받는 마이크로비트가 <b>서로 같기만 하면 아무 숫자(0~255)</b>나 돼요. 이 웹앱은 그룹 번호와 상관없어요. 여러 모둠이 한 교실에서 하면 <b>모둠마다 다른 번호</b>를 써야 신호가 섞이지 않아요.</p>
-      <p><b>원소는 이 메뉴</b>에서 고르고, <b>마법봉 마이크로비트</b>는 아래 문자열만 보내면 돼요.</p>
+      <p><b>원소는 이 메뉴</b>에서 고르고, <b>마법봉 마이크로비트</b>는 <strong>라디오 수 보내기</strong>로 아래 숫자를 보내면 돼요. (받는 쪽: <strong>라디오 수를 받았을 때 → 시리얼 한 줄 쓰기 (receivedNumber)</strong>)</p>
       <table>
-        <tr><td><code>SPELL</code></td><td>고른 원소 마법 펼치기</td></tr>
-        <tr><td><code>STOP</code></td><td>마법 끄기</td></tr>
-        <tr><td><code>NOTHING</code></td><td>변화 없음</td></tr>
+        <tr><td><code>1</code></td><td>고른 원소 마법 펼치기 (SPELL)</td></tr>
+        <tr><td><code>2</code></td><td>마법 끄기 (STOP)</td></tr>
+        <tr><td><code>3</code></td><td>변화 없음 (NOTHING)</td></tr>
       </table>
+      <p>글자 <code>SPELL</code> / <code>STOP</code> 으로 보내도 똑같이 돼요.</p>
       <p>Chrome/Edge에서 연결 버튼을 누르고 <strong>USB 시리얼 포트</strong>를 고르세요. MakeCode 콘솔 등 다른 시리얼 창은 닫아 두세요.</p>
       <p>마법 중에는 메뉴가 흐려져요(마우스를 올리면 선명). <code>H</code> 메뉴 숨기기 · <code>F</code> 전체화면 · <code>1</code>~<code>5</code> 원소 · <code>Space</code> SPELL · <code>0</code> STOP</p>
     </details>
@@ -172,9 +173,14 @@
   }
 
   // ───────────────────────── 명령 처리 ─────────────────────────
-  // 마이크로비트는 SPELL / STOP / NOTHING 세 가지만 보냅니다. 원소는 화면에서 고릅니다.
+  // 마이크로비트는 숫자 1(SPELL) / 2(STOP) / 3(NOTHING)을 보냅니다. 글자 SPELL / STOP 도 그대로 됩니다.
+  // 원소는 화면에서 고릅니다.
+  const NUMBER_COMMANDS = { 1: 'spell', 2: 'stop', 3: null };
   function parse(raw) {
     const value = String(raw).trim().toUpperCase();
+    // "1", "1.0", 또는 '시리얼 값 쓰기'가 보내는 "x:1" 모양에서 숫자를 꺼냅니다
+    const num = value.match(/(?:^|[:=\s])(-?\d+)(?:\.0+)?$/);
+    if (num) return NUMBER_COMMANDS[Number(num[1])] ?? null;
     if (value.includes('SPELL')) return 'spell';
     if (value.includes('STOP')) return 'stop';
     return null; // NOTHING 및 그 밖의 데이터는 현재 상태를 바꾸지 않습니다
@@ -256,7 +262,7 @@
     const li = document.createElement('li'); li.className = kind;
     const time = document.createElement('time'); const d = new Date(); time.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
     const b = document.createElement('b'); b.textContent = line || '(빈 줄)';
-    const em = document.createElement('em'); em.textContent = note || (kind === 'spell' ? '시전' : kind === 'stop' ? '끄기' : /NOTHING/i.test(line) ? '변화 없음' : '모르는 글자');
+    const em = document.createElement('em'); em.textContent = note || (kind === 'spell' ? '시전' : kind === 'stop' ? '끄기' : /NOTHING|(^|[:=\s])3(\.0+)?$/i.test(line.trim()) ? '변화 없음' : '모르는 신호');
     li.append(time, b, em); rxLog.prepend(li);
     while (rxLog.children.length > 6) rxLog.lastChild.remove();
     rxCount.textContent = (++rxLines) + '줄';
