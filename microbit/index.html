@@ -16,7 +16,7 @@
     #fx, #glow { pointer-events: none; }
     #glow { mix-blend-mode: screen; mix-blend-mode: plus-lighter; }
 
-    .panel { position: fixed; z-index: 3; left: 16px; top: 16px; bottom: 16px; width: 236px; display: flex; flex-direction: column; gap: 14px;
+    .panel { position: fixed; z-index: 3; left: 16px; top: 16px; bottom: 16px; width: 236px; display: flex; flex-direction: column; gap: 12px;
       padding: 18px 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(8,11,22,.8); backdrop-filter: blur(20px);
       box-shadow: 0 20px 60px #0007; overflow-y: auto; transition: opacity .5s, transform .5s; scrollbar-width: thin; }
     body.casting .panel { opacity: .38; }
@@ -38,7 +38,7 @@
     #connect { width: 100%; background: #f2e6d8; border-color: #f2e6d8; color: #1a1420; }
     #connect:hover:not(:disabled) { background: #fff; }
     .elements { display: flex; flex-direction: column; gap: 6px; }
-    .el { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; }
+    .el { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; min-height: 38px; padding: 7px 13px; }
     .el i { width: 11px; height: 11px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; }
     .el kbd { margin-left: auto; font: inherit; font-size: .72rem; opacity: .5; font-weight: 600; }
     .el.active { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); box-shadow: 0 0 20px color-mix(in srgb, var(--c) 35%, transparent); }
@@ -49,6 +49,18 @@
     .spell-test { border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
     .readout small { display: block; color: #aea6b4; font-size: .72rem; margin-bottom: 4px; font-weight: 700; }
     .readout strong { display: block; font-size: .88rem; font-weight: 700; line-height: 1.45; }
+    .monitor small { display: flex; align-items: center; gap: 7px; color: #aea6b4; font-size: .72rem; margin-bottom: 6px; font-weight: 700; }
+    .rx { width: 8px; height: 8px; border-radius: 50%; background: #4a4752; transition: background .4s, box-shadow .4s; }
+    .rx.on { background: #77e2bf; box-shadow: 0 0 12px #77e2bf; transition: none; }
+    #rxCount { margin-left: auto; font-weight: 600; opacity: .8; }
+    .monitor ol { list-style: none; margin: 0; padding: 7px 9px; border-radius: 10px; background: rgba(0,0,0,.32); border: 1px solid rgba(255,255,255,.08);
+      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; min-height: 52px; max-height: 128px; overflow: hidden; }
+    .monitor li { display: flex; gap: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .monitor li time { opacity: .45; }
+    .monitor li b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+    .monitor li em { margin-left: auto; font-style: normal; opacity: .75; }
+    .monitor li.spell b { color: #ffd27e; } .monitor li.stop b { color: #ff9b8a; } .monitor li.ignored b { color: #b9b3c2; }
+    .monitor li.hint { white-space: normal; font-family: inherit; opacity: .7; font-size: .74rem; }
     .spacer { flex: 1; }
     .help { font-size: .82rem; color: #d3cad4; }
     .help summary { cursor: pointer; list-style: none; text-decoration: underline; text-decoration-color: #9d93a3; text-underline-offset: 4px; }
@@ -65,7 +77,7 @@
     /* 좁은 화면(휴대폰)에서는 아래쪽 막대로, 마법 중에는 숨김 */
     @media (max-width: 720px) {
       .panel { top: auto; left: 10px; right: 10px; bottom: 10px; width: auto; max-height: 52vh; gap: 10px; padding: 12px; }
-      .brand, .help, .spacer { display: none; }
+      .brand, .help, .spacer, .monitor { display: none; }
       .elements { display: grid; grid-template-columns: repeat(5, 1fr); }
       .el { justify-content: center; padding: 8px 4px; gap: 6px; }
       .el kbd { display: none; }
@@ -88,11 +100,14 @@
     <div><span class="label">원소 고르기</span><div class="elements" id="elementButtons"></div></div>
     <div><span class="label">마이크로비트 없이 시험</span><div class="tests" id="testButtons"></div></div>
     <div class="readout" aria-live="polite"><small>마지막 명령</small><strong id="lastCommand">명령 대기 중</strong></div>
+    <div class="monitor"><small><span class="rx" id="rxDot"></span>받은 신호 (시리얼 모니터)<span id="rxCount"></span></small>
+      <ol id="rxLog"><li class="hint">마이크로비트를 연결하면 받은 글자가 여기에 바로 보여요.</li></ol></div>
     <div class="spacer"></div>
     <details class="help">
       <summary>마이크로비트 연결 방법</summary>
-      <p><b>받는 마이크로비트</b>(컴퓨터에 USB 연결): 라디오 그룹 <strong>71</strong> → <strong>라디오 문자열을 받았을 때 → 받은 문자열을 시리얼 한 줄 쓰기</strong></p>
-      <p><b>원소는 이 메뉴</b>에서 고르고, <b>마법봉 마이크로비트</b>는 그룹 71에서 아래 문자열만 보내면 돼요.</p>
+      <p><b>받는 마이크로비트</b>(컴퓨터에 USB 연결): <strong>라디오 그룹 설정</strong> → <strong>라디오 문자열을 받았을 때 → 받은 문자열을 시리얼 한 줄 쓰기</strong></p>
+      <p><b>라디오 그룹 번호</b>는 마법봉과 받는 마이크로비트가 <b>서로 같기만 하면 아무 숫자(0~255)</b>나 돼요. 이 웹앱은 그룹 번호와 상관없어요. 여러 모둠이 한 교실에서 하면 <b>모둠마다 다른 번호</b>를 써야 신호가 섞이지 않아요.</p>
+      <p><b>원소는 이 메뉴</b>에서 고르고, <b>마법봉 마이크로비트</b>는 아래 문자열만 보내면 돼요.</p>
       <table>
         <tr><td><code>SPELL</code></td><td>고른 원소 마법 펼치기</td></tr>
         <tr><td><code>STOP</code></td><td>마법 끄기</td></tr>
@@ -232,6 +247,27 @@
     connectButton.textContent = state === 'connected' ? '연결 해제' : state === 'connecting' ? '연결 중…' : '마이크로비트 연결';
     connectButton.disabled = state === 'connecting';
   }
+  // ── 받은 신호 모니터 ──
+  const rxLog = $('rxLog'), rxDot = $('rxDot'), rxCount = $('rxCount');
+  let rxLines = 0, rxDotTimer, flushTimer, quietTimer;
+  function rxHint(text) { rxLog.innerHTML = ''; const li = document.createElement('li'); li.className = 'hint'; li.textContent = text; rxLog.appendChild(li); }
+  function logRx(line, kind, note) {
+    rxLog.querySelector('.hint')?.remove();
+    const li = document.createElement('li'); li.className = kind;
+    const time = document.createElement('time'); const d = new Date(); time.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
+    const b = document.createElement('b'); b.textContent = line || '(빈 줄)';
+    const em = document.createElement('em'); em.textContent = note || (kind === 'spell' ? '시전' : kind === 'stop' ? '끄기' : /NOTHING/i.test(line) ? '변화 없음' : '모르는 글자');
+    li.append(time, b, em); rxLog.prepend(li);
+    while (rxLog.children.length > 6) rxLog.lastChild.remove();
+    rxCount.textContent = (++rxLines) + '줄';
+    rxDot.classList.add('on'); clearTimeout(rxDotTimer); rxDotTimer = setTimeout(() => rxDot.classList.remove('on'), 160);
+  }
+  function receiveLine(line, note) {
+    clearTimeout(quietTimer);
+    const cmd = parse(line);
+    logRx(line, cmd || 'ignored', note);
+    command(line, 'microbit');
+  }
   function receiveText(chunk) {
     commandBuffer += decoder.decode(chunk, { stream: true });
     if (commandBuffer.length > 4096) commandBuffer = commandBuffer.slice(-512);
@@ -239,8 +275,14 @@
     while ((newline = commandBuffer.indexOf('\n')) !== -1) {
       const line = commandBuffer.slice(0, newline).replace(/\r/g, '').trim();
       commandBuffer = commandBuffer.slice(newline + 1);
-      command(line, 'microbit');
+      receiveLine(line);
     }
+    // '시리얼 한 줄 쓰기' 대신 '시리얼 문자열 쓰기'를 써서 줄바꿈이 없어도 잠시 뒤 한 줄로 처리합니다
+    clearTimeout(flushTimer);
+    if (commandBuffer.trim()) flushTimer = setTimeout(() => {
+      const line = commandBuffer.replace(/\r/g, '').trim(); commandBuffer = '';
+      if (line) receiveLine(line, '줄바꿈 없음');
+    }, 350);
   }
   async function connect() {
     if (port) { await disconnect(); return; }
@@ -260,6 +302,10 @@
       await chosen.open({ baudRate: 115200 });
       port = chosen; closing = false; commandBuffer = '';
       setConnection('connected', '마이크로비트 연결됨');
+      rxLines = 0; rxCount.textContent = '';
+      rxHint('연결됐어요. 마법봉을 흔들거나 버튼을 눌러 보세요.');
+      clearTimeout(quietTimer);
+      quietTimer = setTimeout(() => { if (port && !rxLines) rxHint('아직 받은 글자가 없어요. ① 받는 마이크로비트에 “라디오 수신 → 시리얼 한 줄 쓰기” 코드가 있는지 ② 두 마이크로비트의 라디오 그룹 번호가 같은지 ③ 마법봉에 전원이 들어왔는지 확인해 주세요.'); }, 12000);
       readLoop(chosen);
     } catch (error) {
       if (chosen && chosen !== port) { try { await chosen.close(); } catch (_) {} }
@@ -1210,7 +1256,7 @@
   requestAnimationFrame(frame);
 
   // 테스트/디버그용
-  window.magic = { command, selectElement, level, growth };
+  window.magic = { command, selectElement, receiveText, level, growth };
 })();
 </script>
 </body>
