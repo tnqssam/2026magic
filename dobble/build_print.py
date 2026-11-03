@@ -6,12 +6,24 @@ python3 build_print.py  ->  print.html
 import math
 import random
 
+import numpy as np
 from PIL import Image
 
 from make_cards import SYMBOLS, build_cards
 
 
-PIXELS = {n: max(Image.open(f"art/{i:02d}.png").size) for i, n in enumerate(SYMBOLS)}
+def _measure(i):
+    """(긴 변 화소 수, 그림 중심에서 가장 먼 색칠된 점까지 거리의 비율)"""
+    im = Image.open(f"art/{i:02d}.png")
+    w, h = im.size
+    a = np.asarray(im)[..., 3] > 20
+    ys, xs = np.nonzero(a)
+    reach = np.sqrt((xs + 0.5 - w / 2) ** 2 + (ys + 0.5 - h / 2) ** 2).max()
+    return max(w, h), max(w, h) / (2 * reach)
+
+
+MEASURE = {n: _measure(i) for i, n in enumerate(SYMBOLS)}
+PIXELS = {n: m[0] for n, m in MEASURE.items()}
 
 
 def art(name):
@@ -20,8 +32,8 @@ def art(name):
 CARD = 90.0      # 카드 한 변 (mm)
 PAD = 3.0        # 테두리 안쪽 여백 (mm)
 RADII = [21, 17.5, 14.5, 13, 12, 11, 10, 9.5]  # 그림 자리 (반지름, mm): 실제 도블처럼 크고 작게
-FILL = 0.84     # 자리 안에서 그림이 차지하는 비율 (돌려도 넘치지 않게)
-TILT = 35       # 회전 최대 각도: 1학년이 알아보기 쉽게 많이 뒤집지 않음
+# 아이들이 둘러앉아 하므로 실제 도블처럼 0~360도 어느 방향이든 돌린다.
+# 그림은 어떻게 돌려도 자기 원(반지름 r) 밖으로 나가지 않는 크기로 넣는다.
 
 
 def layout(rng):
@@ -37,7 +49,7 @@ def layout(rng):
                 x = rng.uniform(lo + r, hi - r)
                 y = rng.uniform(lo + r, hi - r)
                 if all(math.hypot(x - px, y - py) >= r + pr for px, py, pr, _ in placed):
-                    placed.append((x, y, r, rng.uniform(-TILT, TILT)))
+                    placed.append((x, y, r, rng.uniform(0, 360)))
                     break
             else:
                 ok = False
@@ -54,7 +66,7 @@ def card_html(no, names, rng):
     order.sort(key=lambda n: -PIXELS[n] // 25)
     items = []
     for name, (x, y, r, rot) in zip(order, layout(rng)):
-        size = 2 * r * FILL
+        size = 2 * r * MEASURE[name][1]  # 돌려도 원 안에 들어가는 크기
         items.append(
             f'<div class="it" style="left:{x - size / 2:.2f}mm;top:{y - size / 2:.2f}mm;'
             f'width:{size:.2f}mm;height:{size:.2f}mm;transform:rotate({rot:.0f}deg)">'
