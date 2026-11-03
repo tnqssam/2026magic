@@ -91,7 +91,7 @@ body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif;
   gap: 0; justify-content: center; align-content: center; }}
 .card {{ position: relative; width: {CARD}mm; height: {CARD}mm; outline: 0.25mm solid #888;
   background: #fff; }}
-.back {{ outline: none; overflow: hidden; }}
+.back {{ outline: 0.15mm solid #666; overflow: hidden; }}
 .back img {{ width: 100%; height: 100%; display: block; object-fit: cover; }}
 .blank {{ outline: none; }}
 .no {{ position: absolute; right: 2.2mm; bottom: 1.2mm; font-size: 2.2mm; color: #bbb; }}

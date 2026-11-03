@@ -10,7 +10,19 @@ from scipy import ndimage as nd
 from make_cards import SYMBOLS
 
 ROW_COUNTS = [6, 7, 7, 6, 7, 7, 7, 7, 3]
+# 시트 그림 대신 따로 받은 그림으로 바꿀 것 {번호: 파일}
+OVERRIDES = {35: "art/jungle_gym.webp"}  # 그네 -> 정글짐
 assert sum(ROW_COUNTS) == len(SYMBOLS)
+
+
+def transparent(a):
+    """흰 배경을 투명으로 (밝을수록 투명하게, 경계는 부드럽게)"""
+    ink = a.min(axis=2) < 235
+    rgba = np.dstack([a, np.full(a.shape[:2], 255)]).astype(np.uint8)
+    alpha = np.clip((250 - a.min(axis=2)) * 255 / 30, 0, 255)
+    outside = ~nd.binary_fill_holes(nd.binary_dilation(ink, iterations=1))
+    rgba[..., 3] = np.where(outside, alpha, 255).astype(np.uint8)
+    return Image.fromarray(rgba, "RGBA")
 
 
 def main(path):
@@ -62,13 +74,7 @@ def main(path):
             boxes.append((ys[0], ys[-1] + 1, x0, x1))
     assert len(boxes) == len(SYMBOLS)
 
-    rgba = np.dstack([a, np.full(a.shape[:2], 255)]).astype(np.uint8)
-    # 흰 배경을 투명으로 (밝을수록 투명하게, 경계는 부드럽게)
-    light = a.min(axis=2)
-    alpha = np.clip((250 - light) * 255 / 30, 0, 255)
-    outside = ~nd.binary_fill_holes(nd.binary_dilation(ink, iterations=1))
-    rgba[..., 3] = np.where(outside, alpha, 255).astype(np.uint8)
-    out = Image.fromarray(rgba, "RGBA")
+    out = transparent(a)
     print(f"art/ 폴더에 그림 {len(boxes)}개 저장")
     for i, (name, (y0, y1, x0, x1)) in enumerate(zip(SYMBOLS, boxes)):
         p = 3
@@ -84,6 +90,14 @@ def main(path):
             crop = Image.fromarray(c, "RGBA")
         crop = crop.crop(crop.getbbox())
         crop.save(f"art/{i:02d}.png")
+    for i, src in OVERRIDES.items():
+        src_im = Image.open(src).convert("RGBA")
+        white = Image.new("RGBA", src_im.size, "white")
+        white.alpha_composite(src_im)  # 투명 배경은 흰색으로 바꾼 뒤 처리
+        im = transparent(np.asarray(white.convert("RGB")).astype(int))
+        im = im.crop(im.getbbox())
+        im.thumbnail((400, 400), Image.LANCZOS)
+        im.save(f"art/{i:02d}.png")
 
 
 if __name__ == "__main__":
