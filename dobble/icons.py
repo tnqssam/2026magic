@@ -63,9 +63,9 @@ ICONS["교표"] = """
 ICONS["달력(11/9)"] = f"""
 <rect x="12" y="16" width="76" height="76" rx="6" fill="#fff"/>
 <path d="M12 22 Q12 16 18 16 L82 16 Q88 16 88 22 L88 44 L12 44 Z" fill="#e63946"/>
-<rect x="28" y="8" width="7" height="16" rx="3" fill="#bbb"/>
-<rect x="65" y="8" width="7" height="16" rx="3" fill="#bbb"/>
-<text x="50" y="40" text-anchor="middle" font-size="23" fill="#fff" stroke="none" {FONT}>11월</text>
+<rect x="20" y="8" width="7" height="14" rx="3" fill="#bbb"/>
+<rect x="73" y="8" width="7" height="14" rx="3" fill="#bbb"/>
+<text x="50" y="41" text-anchor="middle" font-size="22" fill="#fff" stroke="none" {FONT}>11월</text>
 <circle cx="50" cy="68" r="19" fill="none" stroke="#e63946" stroke-width="4"/>
 <text x="50" y="80" text-anchor="middle" font-size="32" fill="#2b2b2b" stroke="none" {FONT}>9</text>
 """
