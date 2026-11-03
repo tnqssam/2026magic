@@ -118,13 +118,14 @@ body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif;
 .no {{ position: absolute; right: 2.2mm; bottom: 1.2mm; font-size: 2.2mm; color: #bbb; }}
 .it {{ position: absolute; }}
 .it img {{ width: 100%; height: 100%; object-fit: contain; display: block; }}
-.guide {{ padding: 12mm 12mm; }}
-.guide h1 {{ margin: 0 0 2mm; font-size: 8mm; text-align: center; }}
-.guide p {{ margin: 0 0 6mm; font-size: 4mm; text-align: center; color: #444; }}
-.grid {{ display: grid; grid-template-columns: repeat(8, 1fr); gap: 2mm 1mm; }}
+@font-face {{ font-family: Jua; src: url(fonts/Jua-Regular.ttf); }}
+.guide {{ padding: 10mm 10mm; font-family: Jua, sans-serif; }}
+.guide h1 {{ margin: 0 0 1.5mm; font-size: 11mm; text-align: center; color: #c1121f; font-weight: normal; }}
+.guide p {{ margin: 0 0 5mm; font-size: 4.6mm; text-align: center; color: #444; }}
+.grid {{ display: grid; grid-template-columns: repeat(8, 1fr); gap: 3.2mm 1mm; }}
 .cell {{ text-align: center; }}
-.cell img {{ width: 18mm; height: 18mm; object-fit: contain; }}
-.nm {{ font-size: 2.9mm; line-height: 1.2; }}
+.cell img {{ width: 21mm; height: 21mm; object-fit: contain; }}
+.nm {{ font-size: 5mm; line-height: 1.1; margin-top: 0.6mm; color: #222; }}
 """
     def doc(title, body):
         return (
