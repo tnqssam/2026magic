@@ -19,22 +19,27 @@ SYMBOLS = [
 N = 7  # 한 장 그림 수 = N + 1 = 8, 그림 수 = N*N + N + 1 = 57
 assert len(SYMBOLS) == N * N + N + 1 and len(set(SYMBOLS)) == len(SYMBOLS)
 
-cards = []
-for i in range(N):  # 기울기 i인 직선들
-    for j in range(N):
-        cards.append([N * x + (i * x + j) % N for x in range(N)] + [N * N + i])
-for x in range(N):  # 세로 직선들
-    cards.append([N * x + y for y in range(N)] + [N * N + N])
-cards.append([N * N + i for i in range(N + 1)])  # 무한원 직선
+def build_cards():
+    cards = []
+    for i in range(N):  # 기울기 i인 직선들
+        for j in range(N):
+            cards.append([N * x + (i * x + j) % N for x in range(N)] + [N * N + i])
+    for x in range(N):  # 세로 직선들
+        cards.append([N * x + y for y in range(N)] + [N * N + N])
+    cards.append([N * N + i for i in range(N + 1)])  # 무한원 직선
 
-for a, b in itertools.combinations(cards, 2):
-    assert len(set(a) & set(b)) == 1
-for s in range(len(SYMBOLS)):
-    assert sum(s in c for c in cards) == N + 1
+    for a, b in itertools.combinations(cards, 2):
+        assert len(set(a) & set(b)) == 1
+    for s in range(len(SYMBOLS)):
+        assert sum(s in c for c in cards) == N + 1
+    return [[SYMBOLS[s] for s in c] for c in cards]
 
-with open("cards.csv", "w", encoding="utf-8-sig", newline="") as f:
-    w = csv.writer(f)
-    w.writerow(["카드"] + [f"그림{k}" for k in range(1, N + 2)])
-    for n, c in enumerate(cards, 1):
-        w.writerow([n] + [SYMBOLS[s] for s in c])
-print(f"OK: {len(cards)}장 생성, 모든 카드 쌍의 공통 그림이 정확히 1개")
+
+if __name__ == "__main__":
+    cards = build_cards()
+    with open("cards.csv", "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["카드"] + [f"그림{k}" for k in range(1, N + 2)])
+        for n, c in enumerate(cards, 1):
+            w.writerow([n] + c)
+    print(f"OK: {len(cards)}장 생성, 모든 카드 쌍의 공통 그림이 정확히 1개")
