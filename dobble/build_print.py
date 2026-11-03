@@ -14,7 +14,7 @@ def art(name):
 
 CARD = 90.0      # 카드 한 변 (mm)
 PAD = 3.0        # 테두리 안쪽 여백 (mm)
-RADII = [18, 16, 15, 14, 13.5, 13, 12, 11.5]  # 그림 자리 (반지름, mm)
+RADII = [21, 17.5, 14.5, 13, 12, 11, 10, 9.5]  # 그림 자리 (반지름, mm): 실제 도블처럼 크고 작게
 FILL = 0.84     # 자리 안에서 그림이 차지하는 비율 (돌려도 넘치지 않게)
 TILT = 35       # 회전 최대 각도: 1학년이 알아보기 쉽게 많이 뒤집지 않음
 
@@ -82,9 +82,9 @@ def main():
 body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif; background: #fff; }}
 .page {{ width: 210mm; height: 297mm; page-break-after: always; overflow: hidden; }}
 .cards {{ display: grid; grid-template-columns: repeat(2, {CARD}mm); grid-auto-rows: {CARD}mm;
-  gap: 4mm; justify-content: center; align-content: center; }}
-.card {{ position: relative; width: {CARD}mm; height: {CARD}mm; border: 0.4mm solid #999;
-  border-radius: 5mm; background: #fff; }}
+  gap: 0; justify-content: center; align-content: center; }}
+.card {{ position: relative; width: {CARD}mm; height: {CARD}mm; outline: 0.25mm solid #888;
+  background: #fff; }}
 .no {{ position: absolute; right: 2.2mm; bottom: 1.2mm; font-size: 2.2mm; color: #bbb; }}
 .it {{ position: absolute; }}
 .it img {{ width: 100%; height: 100%; object-fit: contain; display: block; }}
