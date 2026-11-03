@@ -74,22 +74,42 @@ def main(path):
             boxes.append((ys[0], ys[-1] + 1, x0, x1))
     assert len(boxes) == len(SYMBOLS)
 
-    out = transparent(a)
+    out = np.asarray(transparent(a))
+    # 그림마다 "중심이 그 칸 안에 있는 조각"만 모아서 자른다
+    # (칸 경계로 자르면 붙어 있던 이웃 그림이 잘리거나 딸려 오기 때문)
+    plab, pn = nd.label(out[..., 3] > 20)
+    boxid = np.full(plab.shape, -1)
+    for k, (y0, y1, x0, x1) in enumerate(boxes):
+        boxid[y0:y1, x0:x1] = k
+    pix_owner = np.full(plab.shape, -1)
+    for j, sl in enumerate(nd.find_objects(plab), 1):
+        m = plab[sl] == j
+        ids = boxid[sl][m]
+        ids = ids[ids >= 0]
+        if len(ids) == 0:
+            continue
+        cnt = np.bincount(ids)
+        sub = pix_owner[sl]
+        if cnt.max() >= 0.9 * len(ids):  # 거의 한 칸 안에 있으면 통째로 그 그림
+            sub[m] = cnt.argmax()
+        else:  # 두 그림이 붙은 조각: 칸 경계로 나눔
+            sub[m] = boxid[sl][m]
     print(f"art/ 폴더에 그림 {len(boxes)}개 저장")
-    for i, (name, (y0, y1, x0, x1)) in enumerate(zip(SYMBOLS, boxes)):
-        p = 3
-        crop = out.crop((max(0, x0 - p), max(0, y0 - p), x1 + p, y1 + p))
-        # 옆 그림에서 딸려 온 작은 조각 지우기
-        c = np.asarray(crop).copy()
+    for i in range(len(boxes)):
+        keep = pix_owner == i
+        ys, xs = np.nonzero(keep)
+        y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+        c = out[y0:y1, x0:x1].copy()
+        c[~keep[y0:y1, x0:x1], 3] = 0
+        # 아주 작은 부스러기 지우기
         cl, cn = nd.label(c[..., 3] > 20)
         if cn > 1:
             sizes = nd.sum(np.ones_like(cl), cl, range(1, cn + 1))
             for j, sz in enumerate(sizes, 1):
                 if sz < sizes.max() * 0.03:
                     c[cl == j, 3] = 0
-            crop = Image.fromarray(c, "RGBA")
-        crop = crop.crop(crop.getbbox())
-        crop.save(f"art/{i:02d}.png")
+        crop = Image.fromarray(c, "RGBA")
+        crop.crop(crop.getbbox()).save(f"art/{i:02d}.png")
     for i, src in OVERRIDES.items():
         src_im = Image.open(src).convert("RGBA")
         white = Image.new("RGBA", src_im.size, "white")

@@ -6,7 +6,12 @@ python3 build_print.py  ->  print.html
 import math
 import random
 
+from PIL import Image
+
 from make_cards import SYMBOLS, build_cards
+
+
+PIXELS = {n: max(Image.open(f"art/{i:02d}.png").size) for i, n in enumerate(SYMBOLS)}
 
 
 def art(name):
@@ -45,6 +50,8 @@ def layout(rng):
 def card_html(no, names, rng):
     order = names[:]
     rng.shuffle(order)
+    # 화소가 많은(선명한) 그림일수록 큰 자리에 놓아 확대해도 흐려지지 않게
+    order.sort(key=lambda n: -PIXELS[n] // 25)
     items = []
     for name, (x, y, r, rot) in zip(order, layout(rng)):
         size = 2 * r * FILL
