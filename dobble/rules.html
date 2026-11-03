@@ -1,0 +1,50 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>대블 게임 방법</title><style>
+@page { size: A4; margin: 0; }
+@font-face { font-family: Jua; src: url(fonts/Jua-Regular.ttf); }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Jua, sans-serif; color: #2b2b2b; background: #fff; }
+.page { width: 210mm; height: 297mm; padding: 9mm 12mm; overflow: hidden; position: relative; }
+.top { display: flex; align-items: center; gap: 5mm; }
+.top img { width: 28mm; height: 28mm; border: 0.3mm solid #ddd; }
+h1 { margin: 0; font-size: 13mm; color: #c1121f; font-weight: normal; line-height: 1; }
+.lead { font-size: 5.2mm; margin-top: 2mm; line-height: 1.35; }
+.meta { display: flex; gap: 2.5mm; margin-top: 3mm; }
+.meta span { background: #fff3c4; border-radius: 3mm; padding: 1mm 3mm; font-size: 4.2mm; }
+.rule { margin-top: 4mm; background: #e7f6ff; border-radius: 4mm; padding: 4mm 5mm; display: flex; align-items: center; gap: 4mm; }
+.rule .txt { flex: 1; font-size: 5mm; line-height: 1.4; }
+.rule .txt b { color: #c1121f; font-weight: normal; font-size: 6mm; }
+.ex { display: flex; gap: 2mm; }
+.ex .wrap { width: 40.5mm; height: 40.5mm; overflow: hidden; background: #fff; border: 0.3mm solid #aaa; }
+.ex .card { position: relative; width: 90.0mm; height: 90.0mm; transform: scale(0.45); transform-origin: 0 0; }
+.ex .no { display: none; }
+.it { position: absolute; }
+.it img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.ex .it:has(img[alt="탬버린"]) { border-radius: 50%; box-shadow: 0 0 0 1.6mm #ff2d55; }
+.games { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; margin-top: 4mm; }
+.game { border: 0.6mm solid #ffd23f; border-radius: 4mm; padding: 3mm 4mm; }
+.gh { font-size: 6mm; display: flex; align-items: baseline; gap: 2mm; flex-wrap: wrap; }
+.num { background: #c1121f; color: #fff; border-radius: 50%; width: 7.5mm; height: 7.5mm; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 5mm; align-self: center; }
+.sub { font-size: 3.8mm; color: #777; }
+ol { margin: 1.5mm 0 0; padding-left: 5mm; font-size: 4mm; line-height: 1.35; }
+li { margin-bottom: 1mm; }
+li b { color: #c1121f; font-weight: normal; }
+.tips { margin-top: 4mm; background: #f1fbe9; border-radius: 4mm; padding: 3mm 5mm; font-size: 4.2mm; line-height: 1.45; }
+.tips h2 { margin: 0 0 1mm; font-size: 5.5mm; font-weight: normal; color: #2e7d32; }
+.tips ul { margin: 0; padding-left: 5mm; }
+</style></head><body><section class="page">
+<div class="top"><img src="art/back.webp" alt="대블">
+<div><h1>대블 게임 방법</h1>
+<div class="lead">대흘초 그림 57개가 숨어 있는 카드 놀이예요.<br>같은 그림을 누가 먼저 찾을까요?</div>
+<div class="meta"><span>👥 2~8명</span><span>⏱ 한 판 5분</span><span>🃏 카드 57장</span></div></div></div>
+<div class="rule"><div class="ex"><div class="wrap"><div class="card"><span class="no">1</span><div class="it" style="left:31.07mm;top:18.49mm;width:29.73mm;height:29.73mm;transform:rotate(358deg)"><img src="art/35.png" alt="정글짐"></div><div class="it" style="left:50.95mm;top:54.01mm;width:32.43mm;height:32.43mm;transform:rotate(78deg)"><img src="art/42.png" alt="시소"></div><div class="it" style="left:23.98mm;top:53.61mm;width:24.89mm;height:24.89mm;transform:rotate(119deg)"><img src="art/07.png" alt="가위"></div><div class="it" style="left:4.44mm;top:4.16mm;width:24.51mm;height:24.51mm;transform:rotate(201deg)"><img src="art/00.png" alt="조록나무"></div><div class="it" style="left:64.88mm;top:5.96mm;width:18.18mm;height:18.18mm;transform:rotate(55deg)"><img src="art/28.png" alt="농구"></div><div class="it" style="left:3.54mm;top:66.32mm;width:20.14mm;height:20.14mm;transform:rotate(104deg)"><img src="art/49.png" alt="탬버린"></div><div class="it" style="left:9.15mm;top:38.33mm;width:18.49mm;height:18.49mm;transform:rotate(159deg)"><img src="art/21.png" alt="은행잎"></div><div class="it" style="left:67.45mm;top:30.70mm;width:14.45mm;height:14.45mm;transform:rotate(62deg)"><img src="art/14.png" alt="책상"></div></div></div><div class="wrap"><div class="card"><span class="no">2</span><div class="it" style="left:18.82mm;top:9.08mm;width:40.47mm;height:40.47mm;transform:rotate(299deg)"><img src="art/22.png" alt="연못"></div><div class="it" style="left:31.16mm;top:56.97mm;width:26.37mm;height:26.37mm;transform:rotate(286deg)"><img src="art/01.png" alt="동백꽃"></div><div class="it" style="left:58.96mm;top:7.36mm;width:26.35mm;height:26.35mm;transform:rotate(339deg)"><img src="art/29.png" alt="돌담"></div><div class="it" style="left:61.47mm;top:42.11mm;width:21.74mm;height:21.74mm;transform:rotate(54deg)"><img src="art/08.png" alt="가방"></div><div class="it" style="left:6.78mm;top:42.43mm;width:22.28mm;height:22.28mm;transform:rotate(245deg)"><img src="art/49.png" alt="탬버린"></div><div class="it" style="left:7.73mm;top:66.79mm;width:17.79mm;height:17.79mm;transform:rotate(261deg)"><img src="art/15.png" alt="우유"></div><div class="it" style="left:64.64mm;top:66.96mm;width:17.54mm;height:17.54mm;transform:rotate(358deg)"><img src="art/43.png" alt="마이크"></div><div class="it" style="left:4.54mm;top:9.55mm;width:15.37mm;height:15.37mm;transform:rotate(123deg)"><img src="art/36.png" alt="귤"></div></div></div></div>
+<div class="txt">어떤 카드 두 장을 골라도<br>똑같은 그림이 <b>딱 하나</b> 있어요!<br>
+이 두 카드에는 <b>탬버린</b>이 똑같아요.<br>같은 그림을 찾으면 <b>이름을 외쳐요.</b></div></div>
+<div class="games"><div class="game"><div class="gh"><span class="num">1</span>같은 그림 찾기<span class="sub">처음 하는 친구들 연습 놀이</span></div><ol><li>카드 두 장을 앞면이 보이게 가운데에 놓아요.</li><li>두 카드에 똑같이 있는 그림을 찾아 이름을 크게 외쳐요.</li><li>맞힌 친구가 먼저 놓인 카드를 가져가요. 새 카드를 한 장 펼쳐 남은 카드와 비교해요.</li><li>카드가 다 떨어지면 카드를 가장 많이 모은 친구가 이겨요!</li></ol></div><div class="game"><div class="gh"><span class="num">2</span>높이높이 탑 쌓기<span class="sub">카드를 많이 모으면 이겨요</span></div><ol><li>모두 카드를 한 장씩 앞면이 보이게 내 앞에 놓아요. 남은 카드는 앞면이 보이게 가운데에 쌓아요.</li><li>가운데 맨 위 카드와 <b>내 카드</b>에 같은 그림을 찾아 외쳐요.</li><li>맞히면 가운데 카드를 가져와 내 카드 위에 올려요. 이제 그 카드가 내 카드예요.</li><li>가운데 카드가 다 떨어지면 탑이 가장 높은 친구가 이겨요!</li></ol></div><div class="game"><div class="gh"><span class="num">3</span>카드 빨리 버리기<span class="sub">카드를 먼저 다 없애면 이겨요</span></div><ol><li>카드 한 장을 앞면이 보이게 가운데에 놓고, 나머지는 모두 똑같이 나눠 가져요.</li><li>내 카드 더미를 뒤집어 맨 위 카드만 보이게 내 앞에 놓아요.</li><li>내 맨 위 카드와 가운데 카드에 같은 그림을 외치고, 내 카드를 가운데에 올려요.</li><li>내 카드를 가장 먼저 다 버린 친구가 이겨요!</li></ol></div><div class="game"><div class="gh"><span class="num">4</span>깜짝 선물 주기<span class="sub">카드를 적게 가지면 이겨요</span></div><ol><li>모두 카드를 한 장씩 앞면이 보이게 내 앞에 놓아요. 남은 카드는 가운데에 쌓아요.</li><li>가운데 맨 위 카드와 <b>친구 카드</b>에 같은 그림을 찾아 외쳐요.</li><li>맞히면 가운데 카드를 그 친구에게 선물해요. 친구 카드 위에 올려 줘요.</li><li>가운데 카드가 다 떨어지면 카드가 가장 적은 친구가 이겨요!</li></ol></div></div>
+<div class="tips"><h2>🌺 함께 지켜요</h2><ul>
+<li>그림 이름을 말하고 나서 카드를 잡아요. 틀리게 말하면 한 번 쉬어요.</li>
+<li>둘이 동시에 외치면 가위바위보로 정해요.</li>
+<li>카드는 돌려 봐도 괜찮아요. 그림은 여러 방향으로 놓여 있어요.</li>
+<li>이름이 생각나지 않으면 '그림 안내' 종이를 보고 함께 불러요.</li>
+</ul></div>
+</section></body></html>

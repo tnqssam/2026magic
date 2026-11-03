@@ -5,7 +5,7 @@ const path = require('path');
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 794, height: 1123 }, deviceScaleFactor: 2 });
-  for (const [src, out] of [['print.html', 'dobble_cards_duplex.pdf'], ['guide.html', 'dobble_guide.pdf']]) {
+  for (const [src, out] of [['print.html', 'dobble_cards_duplex.pdf'], ['guide.html', 'dobble_guide.pdf'], ['rules.html', 'dobble_rules.pdf']]) {
     await page.goto('file://' + path.resolve(__dirname, src));
     await page.waitForLoadState('networkidle');
     await page.pdf({ path: path.resolve(__dirname, out), format: 'A4', printBackground: true });
