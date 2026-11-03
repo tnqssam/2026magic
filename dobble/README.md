@@ -6,9 +6,10 @@
 - `cards.csv`: 카드별 그림 조합표 (엑셀에서 바로 열림)
 
 ## 다시 만들기
-그림 목록은 `make_cards.py`, 그림은 `icons.py`(SVG)에 있습니다.
+그림 목록은 `make_cards.py`에 있습니다. 그림은 `art/sheet.webp`(57개를 순서대로 모은 시트)에서 잘라 `art/`에 저장합니다. (`icons.py`는 이전에 쓰던 SVG 그림입니다.)
 
 ```bash
+python3 crop_sheet.py art/sheet.webp
 python3 build_print.py
 node make_pdf.js
 ```

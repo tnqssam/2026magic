@@ -6,8 +6,11 @@ python3 build_print.py  ->  print.html
 import math
 import random
 
-from icons import svg
 from make_cards import SYMBOLS, build_cards
+
+
+def art(name):
+    return f'<img src="art/{SYMBOLS.index(name):02d}.png" alt="{name}">'
 
 CARD = 90.0      # 카드 한 변 (mm)
 PAD = 3.0        # 테두리 안쪽 여백 (mm)
@@ -48,7 +51,7 @@ def card_html(no, names, rng):
         items.append(
             f'<div class="it" style="left:{x - size / 2:.2f}mm;top:{y - size / 2:.2f}mm;'
             f'width:{size:.2f}mm;height:{size:.2f}mm;transform:rotate({rot:.0f}deg)">'
-            f"{svg(name)}</div>"
+            f"{art(name)}</div>"
         )
     return f'<div class="card"><span class="no">{no}</span>{"".join(items)}</div>'
 
@@ -60,7 +63,7 @@ def main():
 
     # 1쪽: 그림 도감 (1학년 확인용)
     cells = "".join(
-        f'<div class="cell">{svg(s)}<div class="nm">{s}</div></div>' for s in SYMBOLS
+        f'<div class="cell">{art(s)}<div class="nm">{s}</div></div>' for s in SYMBOLS
     )
     pages.append(
         '<section class="page guide"><h1>학교사랑 도블 · 그림 57개</h1>'
@@ -84,13 +87,13 @@ body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif;
   border-radius: 5mm; background: #fff; }}
 .no {{ position: absolute; right: 2.2mm; bottom: 1.2mm; font-size: 2.2mm; color: #bbb; }}
 .it {{ position: absolute; }}
-.it svg {{ width: 100%; height: 100%; display: block; }}
+.it img {{ width: 100%; height: 100%; object-fit: contain; display: block; }}
 .guide {{ padding: 12mm 12mm; }}
 .guide h1 {{ margin: 0 0 2mm; font-size: 8mm; text-align: center; }}
 .guide p {{ margin: 0 0 6mm; font-size: 4mm; text-align: center; color: #444; }}
 .grid {{ display: grid; grid-template-columns: repeat(8, 1fr); gap: 2mm 1mm; }}
 .cell {{ text-align: center; }}
-.cell svg {{ width: 18mm; height: 18mm; }}
+.cell img {{ width: 18mm; height: 18mm; object-fit: contain; }}
 .nm {{ font-size: 2.9mm; line-height: 1.2; }}
 """
     html = (
