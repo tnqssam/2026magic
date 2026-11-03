@@ -49,24 +49,25 @@ ICONS["학교"] = """
 <rect x="43" y="68" width="14" height="22" fill="#8b5a2b"/>
 """
 
-ICONS["교표"] = f"""
-<path d="M50 6 L88 18 L84 58 Q78 82 50 94 Q22 82 16 58 L12 18 Z" fill="#1f4e9e"/>
-<path d="M50 14 L80 24 L77 56 Q72 76 50 86 Q28 76 23 56 L20 24 Z" fill="none" stroke="#ffd23f" stroke-width="3"/>
-<g fill="#d7263d" stroke-width="2">
-<circle cx="50" cy="30" r="7"/><circle cx="58" cy="36" r="7"/><circle cx="55" cy="45" r="7"/><circle cx="45" cy="45" r="7"/><circle cx="42" cy="36" r="7"/>
+ICONS["교표"] = """
+<g stroke="none" fill="#b8964e">
+<path d="M14 30 L51 42 L86 30 L65 55 L86 79 L50 68 L14 79 L36 56 Z"/>
+<circle cx="50" cy="27" r="8.5"/>
 </g>
-<circle cx="50" cy="39" r="4" fill="#ffd23f" stroke-width="2"/>
-<text x="50" y="74" text-anchor="middle" font-size="20" fill="#fff" stroke="none" {FONT}>대흘</text>
+<g fill="none" stroke="#b8964e" stroke-width="6" stroke-linecap="butt">
+<path d="M54 12 A40 40 0 0 1 90 48"/><path d="M90 56 A40 40 0 0 1 54 92"/>
+<path d="M46 92 A40 40 0 0 1 10 56"/><path d="M10 48 A40 40 0 0 1 46 12"/>
+</g>
 """
 
 ICONS["달력(11/9)"] = f"""
 <rect x="12" y="16" width="76" height="76" rx="6" fill="#fff"/>
-<path d="M12 22 Q12 16 18 16 L82 16 Q88 16 88 22 L88 38 L12 38 Z" fill="#e63946"/>
+<path d="M12 22 Q12 16 18 16 L82 16 Q88 16 88 22 L88 44 L12 44 Z" fill="#e63946"/>
 <rect x="28" y="8" width="7" height="16" rx="3" fill="#bbb"/>
 <rect x="65" y="8" width="7" height="16" rx="3" fill="#bbb"/>
-<text x="50" y="34" text-anchor="middle" font-size="15" fill="#fff" stroke="none" {FONT}>11월</text>
-<circle cx="50" cy="65" r="21" fill="none" stroke="#e63946" stroke-width="4"/>
-<text x="50" y="78" text-anchor="middle" font-size="36" fill="#2b2b2b" stroke="none" {FONT}>9</text>
+<text x="50" y="40" text-anchor="middle" font-size="23" fill="#fff" stroke="none" {FONT}>11월</text>
+<circle cx="50" cy="68" r="19" fill="none" stroke="#e63946" stroke-width="4"/>
+<text x="50" y="80" text-anchor="middle" font-size="32" fill="#2b2b2b" stroke="none" {FONT}>9</text>
 """
 
 ICONS["연필"] = """
@@ -83,7 +84,7 @@ ICONS["지우개"] = f"""
 <g transform="rotate(-20 50 50)">
 <rect x="14" y="32" width="72" height="36" rx="5" fill="#fff"/>
 <rect x="38" y="30" width="48" height="40" fill="#3a86ff"/>
-<text x="62" y="56" text-anchor="middle" font-size="13" fill="#fff" stroke="none" {FONT}>지우개</text>
+<g fill="#fff" stroke="none" opacity="0.6"><rect x="44" y="36" width="36" height="4" rx="2"/></g>
 </g>
 """
 
@@ -98,36 +99,39 @@ ICONS["가위"] = """
 """
 
 ICONS["가방"] = """
-<path d="M38 22 Q38 8 50 8 Q62 8 62 22" fill="none" stroke-width="5"/>
-<rect x="20" y="20" width="60" height="72" rx="16" fill="#e63946"/>
-<path d="M20 44 Q50 54 80 44 L80 36 Q80 20 64 20 L36 20 Q20 20 20 36 Z" fill="#c1121f"/>
-<rect x="32" y="60" width="36" height="24" rx="6" fill="#ff6b6b"/>
-<line x1="38" y1="66" x2="62" y2="66" stroke-width="2"/>
-<circle cx="50" cy="48" r="3" fill="#ffd23f"/>
+<path d="M38 20 Q38 6 50 6 Q62 6 62 20" fill="none" stroke-width="6"/>
+<rect x="16" y="16" width="68" height="78" rx="18" fill="#e63946"/>
+<path d="M16 40 Q16 16 40 16 L60 16 Q84 16 84 40 L84 48 Q50 58 16 48 Z" fill="#c1121f"/>
+<rect x="28" y="58" width="44" height="28" rx="8" fill="#ff8fa3"/>
+<path d="M32 66 L68 66" stroke-width="2.5"/>
+<rect x="30" y="36" width="9" height="30" rx="2" fill="#ffd23f"/>
+<rect x="61" y="36" width="9" height="30" rx="2" fill="#ffd23f"/>
+<rect x="28" y="50" width="13" height="9" rx="2" fill="#bbb"/>
+<rect x="59" y="50" width="13" height="9" rx="2" fill="#bbb"/>
 """
 
 ICONS["국어 교과서"] = f"""
-<rect x="20" y="8" width="64" height="84" rx="4" fill="#fff"/>
-<rect x="16" y="8" width="62" height="84" rx="4" fill="#2a9d8f"/>
-<rect x="16" y="8" width="10" height="84" fill="#21867a"/>
-<rect x="32" y="22" width="38" height="26" rx="4" fill="#fff"/>
-<text x="51" y="41" text-anchor="middle" font-size="17" fill="#21867a" stroke="none" {FONT}>국어</text>
-<text x="51" y="76" text-anchor="middle" font-size="15" fill="#fff" stroke="none" {FONT}>가나다</text>
+<rect x="20" y="6" width="68" height="88" rx="4" fill="#fff"/>
+<rect x="14" y="6" width="68" height="88" rx="4" fill="#2a9d8f"/>
+<rect x="14" y="6" width="10" height="88" fill="#21867a"/>
+<rect x="27" y="16" width="51" height="34" rx="5" fill="#fff"/>
+<text x="53" y="42" text-anchor="middle" font-size="21" fill="#21867a" stroke="none" {FONT}>국어</text>
+<text x="53" y="80" text-anchor="middle" font-size="18" fill="#fff" stroke="none" {FONT}>가나다</text>
 """
 
 ICONS["수학 교과서"] = f"""
-<rect x="20" y="8" width="64" height="84" rx="4" fill="#fff"/>
-<rect x="16" y="8" width="62" height="84" rx="4" fill="#f4a261"/>
-<rect x="16" y="8" width="10" height="84" fill="#e07a2f"/>
-<rect x="32" y="22" width="38" height="26" rx="4" fill="#fff"/>
-<text x="51" y="41" text-anchor="middle" font-size="17" fill="#e07a2f" stroke="none" {FONT}>수학</text>
-<text x="51" y="78" text-anchor="middle" font-size="18" fill="#fff" stroke="none" {FONT}>1+2</text>
+<rect x="20" y="6" width="68" height="88" rx="4" fill="#fff"/>
+<rect x="14" y="6" width="68" height="88" rx="4" fill="#f4a261"/>
+<rect x="14" y="6" width="10" height="88" fill="#e07a2f"/>
+<rect x="27" y="16" width="51" height="34" rx="5" fill="#fff"/>
+<text x="53" y="42" text-anchor="middle" font-size="21" fill="#e07a2f" stroke="none" {FONT}>수학</text>
+<text x="53" y="80" text-anchor="middle" font-size="18" fill="#fff" stroke="none" {FONT}>1+2</text>
 """
 
 ICONS["칠판"] = f"""
 <rect x="6" y="16" width="88" height="62" rx="3" fill="#a0703c"/>
 <rect x="12" y="22" width="76" height="50" fill="#2f5d3a"/>
-<text x="50" y="54" text-anchor="middle" font-size="20" fill="#fff" stroke="none" {FONT}>가나다</text>
+<path d="M20 30 L36 30" stroke="#5f8f6a" stroke-width="2" fill="none"/>
 <rect x="10" y="78" width="80" height="6" fill="#8b5a2b"/>
 <rect x="60" y="74" width="12" height="4" fill="#fff" stroke-width="1.5"/>
 <line x1="24" y1="84" x2="20" y2="96"/><line x1="76" y1="84" x2="80" y2="96"/>
@@ -162,12 +166,16 @@ ICONS["책상"] = """
 <line x1="80" y1="90" x2="92" y2="90" stroke-width="5" stroke="#555"/>
 """
 
-ICONS["우유"] = f"""
-<path d="M24 34 L36 12 L64 12 L76 34 Z" fill="#cfe8ff"/>
-<rect x="34" y="6" width="32" height="8" fill="#fff"/>
-<rect x="24" y="34" width="52" height="58" fill="#fff"/>
-<path d="M24 62 Q37 54 50 62 Q63 70 76 62 L76 92 L24 92 Z" fill="#3a86ff"/>
-<text x="50" y="54" text-anchor="middle" font-size="16" fill="#3a86ff" stroke="none" {FONT}>우유</text>
+ICONS["우유"] = """
+<path d="M22 36 L34 16 L72 16 L60 36 Z" fill="#e8f2ff"/>
+<path d="M60 36 L72 16 L84 36 Z" fill="#c9dcf5"/>
+<rect x="34" y="8" width="38" height="9" fill="#fff"/>
+<rect x="22" y="36" width="38" height="58" fill="#fff"/>
+<path d="M60 36 L84 36 L84 88 L60 94 Z" fill="#dbe7f7"/>
+<path d="M22 70 L60 70 L60 94 L22 94 Z" fill="#3a86ff"/>
+<path d="M60 70 L84 68 L84 88 L60 94 Z" fill="#2f6fd6"/>
+<g fill="#2b2b2b" stroke="none"><ellipse cx="32" cy="48" rx="5" ry="4"/><ellipse cx="48" cy="58" rx="6" ry="4"/><ellipse cx="50" cy="44" rx="3" ry="2.5"/></g>
+<path d="M46 26 L52 2" stroke="#e63946" stroke-width="5"/>
 """
 
 ICONS["버스"] = """
@@ -201,67 +209,81 @@ ICONS["배드민턴라켓"] = """
 
 ICONS["컴퓨터"] = """
 <rect x="10" y="10" width="80" height="56" rx="5" fill="#555"/>
-<rect x="16" y="16" width="68" height="44" fill="#7cc6f2"/>
-<path d="M22 50 L36 34 L46 44 L56 30 L78 52 Z" fill="#8ac926" stroke-width="2"/>
-<circle cx="70" cy="26" r="5" fill="#ffd23f" stroke-width="2"/>
+<rect x="16" y="16" width="68" height="44" fill="#111"/>
+<path d="M22 22 L36 22 M22 28 L30 28" stroke="#555" stroke-width="3"/>
 <rect x="44" y="66" width="12" height="10" fill="#888"/>
 <rect x="30" y="76" width="40" height="5" rx="2" fill="#888"/>
 <rect x="18" y="85" width="64" height="10" rx="3" fill="#ddd"/>
 """
 
 ICONS["줄넘기"] = """
-<path d="M22 30 Q4 70 30 88 Q50 100 70 88 Q96 70 78 30" fill="none" stroke="#3a86ff" stroke-width="5"/>
-<g transform="rotate(-25 22 20)"><rect x="16" y="4" width="12" height="28" rx="6" fill="#e63946"/><line x1="16" y1="12" x2="28" y2="12" stroke-width="2"/></g>
-<g transform="rotate(25 78 20)"><rect x="72" y="4" width="12" height="28" rx="6" fill="#e63946"/><line x1="72" y1="12" x2="84" y2="12" stroke-width="2"/></g>
+<path d="M24 26 C60 -4 104 40 62 58 C24 74 30 100 74 80" fill="none" stroke="#ff8c42" stroke-width="5"/>
+<g transform="rotate(-50 18 20)"><rect x="12" y="4" width="12" height="30" rx="6" fill="#3a86ff"/><line x1="12" y1="26" x2="24" y2="26" stroke-width="2"/></g>
+<g transform="rotate(-70 82 80)"><rect x="76" y="64" width="12" height="30" rx="6" fill="#3a86ff"/><line x1="76" y1="72" x2="88" y2="72" stroke-width="2"/></g>
 """
 
 ICONS["돌하르방"] = """
-<path d="M24 34 Q24 6 50 6 Q76 6 76 34 Z" fill="#7d7d7d"/>
-<rect x="18" y="30" width="64" height="8" rx="4" fill="#7d7d7d"/>
-<path d="M26 38 L74 38 L78 92 L22 92 Z" fill="#9e9e9e"/>
-<circle cx="38" cy="50" r="7" fill="#e6e6e6"/><circle cx="62" cy="50" r="7" fill="#e6e6e6"/>
-<circle cx="38" cy="50" r="2.5" fill="#2b2b2b"/><circle cx="62" cy="50" r="2.5" fill="#2b2b2b"/>
-<path d="M46 50 L44 66 Q50 70 56 66 L54 50" fill="#8a8a8a"/>
-<path d="M42 74 Q50 78 58 74" fill="none"/>
-<path d="M26 80 Q40 74 50 82 M74 80 Q60 74 50 86" fill="none"/>
-<g fill="#6b6b6b" stroke="none"><circle cx="30" cy="62" r="1.8"/><circle cx="70" cy="64" r="1.8"/><circle cx="34" cy="88" r="1.8"/><circle cx="66" cy="88" r="1.8"/><circle cx="40" cy="20" r="1.8"/><circle cx="60" cy="16" r="1.8"/></g>
+<path d="M28 26 Q26 4 50 4 Q74 4 72 26 Z" fill="#6e6e6e"/>
+<ellipse cx="50" cy="27" rx="30" ry="5" fill="#6e6e6e"/>
+<path d="M26 30 L74 30 Q78 46 74 62 L26 62 Q22 46 26 30 Z" fill="#8a8a8a"/>
+<circle cx="37" cy="41" r="8" fill="#a8a8a8"/><circle cx="63" cy="41" r="8" fill="#a8a8a8"/>
+<circle cx="37" cy="41" r="3" fill="#2b2b2b"/><circle cx="63" cy="41" r="3" fill="#2b2b2b"/>
+<path d="M47 36 L42 54 Q50 58 58 54 L53 36 Z" fill="#9a9a9a"/>
+<path d="M40 60 L60 60" stroke-width="3"/>
+<path d="M28 62 L72 62 L76 96 L24 96 Z" fill="#7d7d7d"/>
+<rect x="24" y="68" width="34" height="10" rx="5" fill="#9a9a9a"/>
+<rect x="42" y="82" width="34" height="10" rx="5" fill="#9a9a9a"/>
+<g fill="#555" stroke="none"><circle cx="40" cy="12" r="1.8"/><circle cx="58" cy="16" r="1.8"/><circle cx="30" cy="50" r="1.6"/><circle cx="70" cy="52" r="1.6"/><circle cx="66" cy="72" r="1.8"/><circle cx="32" cy="88" r="1.8"/><circle cx="50" cy="20" r="1.5"/></g>
 """
 
 ICONS["은행잎"] = """
-<path d="M50 90 Q52 72 50 60" fill="none" stroke="#8b5a2b" stroke-width="4"/>
-<path d="M50 60 L14 24 Q30 6 50 10 Q70 6 86 24 Z" fill="#ffc300"/>
-<path d="M50 60 L50 22 Q48 14 44 10 M50 22 Q52 14 56 10" fill="none" stroke-width="3"/>
-<g stroke="#d99a00" stroke-width="1.5"><line x1="50" y1="58" x2="26" y2="22"/><line x1="50" y1="58" x2="38" y2="16"/><line x1="50" y1="58" x2="62" y2="16"/><line x1="50" y1="58" x2="74" y2="22"/></g>
+<path d="M50 64 Q48 82 40 94" fill="none" stroke="#8b5a2b" stroke-width="4"/>
+<path d="M50 64 Q24 50 8 30 Q14 10 34 10 Q44 10 47 20 L50 30 L53 20 Q56 10 66 10 Q86 10 92 30 Q76 50 50 64 Z" fill="#ffc300"/>
+<g fill="none" stroke="#e09f00" stroke-width="2"><path d="M50 62 L16 28"/><path d="M50 62 L30 16"/><path d="M50 62 L44 20"/><path d="M50 62 L56 20"/><path d="M50 62 L70 16"/><path d="M50 62 L84 28"/></g>
 """
 
 ICONS["연못"] = """
-<g fill="#9e9e9e"><circle cx="12" cy="54" r="7"/><circle cx="88" cy="56" r="7"/><circle cx="30" cy="80" r="7"/><circle cx="72" cy="80" r="7"/><circle cx="50" cy="84" r="7"/><circle cx="30" cy="30" r="7"/><circle cx="70" cy="28" r="7"/></g>
-<ellipse cx="50" cy="55" rx="40" ry="26" fill="#4cc9f0"/>
-<path d="M28 52 Q36 48 44 52 M54 64 Q62 60 70 64" fill="none" stroke="#fff" stroke-width="3"/>
-<path d="M66 44 A10 7 0 1 1 76 50 L68 47 Z" fill="#4caf50" stroke-width="2.5"/>
-<circle cx="64" cy="44" r="4" fill="#f78fb3" stroke-width="2"/>
+<path d="M14 52 Q8 30 34 28 Q52 16 72 26 Q94 30 90 54 Q92 78 64 80 Q44 90 28 78 Q8 72 14 52 Z" fill="#4cc9f0"/>
+<g fill="none" stroke="#fff" stroke-width="2.5"><ellipse cx="40" cy="58" rx="10" ry="4"/><ellipse cx="40" cy="58" rx="4" ry="1.5"/></g>
+<path d="M62 44 A12 9 0 1 1 74 54 L64 49 Z" fill="#4caf50"/>
+<circle cx="70" cy="44" r="5" fill="#f78fb3" stroke-width="2"/>
+<g stroke="#2e7d32" stroke-width="3"><line x1="22" y1="50" x2="20" y2="16"/><line x1="28" y1="48" x2="30" y2="20"/></g>
+<rect x="16" y="12" width="7" height="14" rx="3.5" fill="#8b5a2b" stroke-width="2"/>
+<rect x="27" y="16" width="7" height="14" rx="3.5" fill="#8b5a2b" stroke-width="2"/>
+<ellipse cx="74" cy="80" rx="9" ry="6" fill="#9e9e9e"/><ellipse cx="84" cy="74" rx="6" ry="5" fill="#bdbdbd"/>
 """
 
 ICONS["선생님"] = """
-<path d="M22 96 Q22 66 50 66 Q78 66 78 96 Z" fill="#6a4c93"/>
-<path d="M44 66 L50 80 L56 66" fill="#fff" stroke-width="2.5"/>
-<circle cx="50" cy="40" r="22" fill="#ffd6a5"/>
-<path d="M28 38 Q28 14 50 14 Q72 14 72 38 Q64 26 48 26 Q36 28 28 38 Z" fill="#4a3220"/>
-<circle cx="41" cy="42" r="7" fill="none" stroke-width="2.5"/><circle cx="59" cy="42" r="7" fill="none" stroke-width="2.5"/>
-<line x1="48" y1="42" x2="52" y2="42" stroke-width="2.5"/>
-<circle cx="41" cy="42" r="2" fill="#2b2b2b"/><circle cx="59" cy="42" r="2" fill="#2b2b2b"/>
-<path d="M43 53 Q50 58 57 53" fill="none" stroke-width="2.5"/>
-<line x1="78" y1="80" x2="96" y2="40" stroke="#8b5a2b" stroke-width="4"/>
+<line x1="70" y1="36" x2="94" y2="8" stroke="#8b5a2b" stroke-width="4"/>
+<path d="M58 44 L72 34" stroke="#2b2b2b" stroke-width="10"/>
+<path d="M58 44 L72 34" stroke="#2a9d8f" stroke-width="6"/>
+<circle cx="73" cy="34" r="4" fill="#ffd6a5" stroke-width="2"/>
+<rect x="36" y="72" width="10" height="22" fill="#555"/><rect x="50" y="72" width="10" height="22" fill="#555"/>
+<rect x="32" y="40" width="32" height="36" rx="8" fill="#2a9d8f"/>
+<path d="M42 40 L48 52 L54 40 Z" fill="#fff" stroke-width="2.5"/>
+<rect x="22" y="50" width="16" height="20" rx="2" fill="#ffd23f"/>
+<circle cx="48" cy="24" r="14" fill="#ffd6a5"/>
+<path d="M33 28 Q30 8 48 8 Q66 8 63 28 Q62 18 54 16 Q44 20 36 18 Q34 22 33 28 Z" fill="#4a3220"/>
+<circle cx="42" cy="26" r="5" fill="none" stroke-width="2"/><circle cx="54" cy="26" r="5" fill="none" stroke-width="2"/>
+<line x1="47" y1="26" x2="49" y2="26" stroke-width="2"/>
+<path d="M44 33 Q48 36 52 33" fill="none" stroke-width="2"/>
 """
 
 ICONS["학생"] = """
-<path d="M26 96 Q26 70 50 70 Q74 70 74 96 Z" fill="#3a86ff"/>
-<line x1="36" y1="72" x2="34" y2="96" stroke="#e63946" stroke-width="5"/><line x1="64" y1="72" x2="66" y2="96" stroke="#e63946" stroke-width="5"/>
-<circle cx="50" cy="48" r="20" fill="#ffd6a5"/>
-<path d="M29 46 Q26 22 50 22 Q74 22 71 46 Q68 34 58 34 Q54 40 46 36 Q40 34 33 38 Z" fill="#2b2b2b"/>
-<circle cx="42" cy="50" r="2.6" fill="#2b2b2b"/><circle cx="58" cy="50" r="2.6" fill="#2b2b2b"/>
-<path d="M43 58 Q50 64 57 58" fill="none" stroke-width="2.5"/>
-<g fill="#ff9aa2" stroke="none"><circle cx="36" cy="56" r="3"/><circle cx="64" cy="56" r="3"/></g>
+<rect x="28" y="48" width="44" height="30" rx="8" fill="#ffc93c"/>
+<path d="M68 54 L84 34" stroke="#2b2b2b" stroke-width="10"/>
+<path d="M68 54 L84 34" stroke="#8ac926" stroke-width="6"/>
+<circle cx="85" cy="32" r="5" fill="#ffd6a5" stroke-width="2"/>
+<rect x="38" y="74" width="9" height="18" fill="#ffd6a5"/><rect x="53" y="74" width="9" height="18" fill="#ffd6a5"/>
+<rect x="34" y="50" width="32" height="28" rx="8" fill="#8ac926"/>
+<rect x="34" y="70" width="32" height="10" rx="2" fill="#3a86ff"/>
+<line x1="38" y1="52" x2="38" y2="70" stroke="#e63946" stroke-width="4"/><line x1="62" y1="52" x2="62" y2="70" stroke="#e63946" stroke-width="4"/>
+<ellipse cx="42" cy="94" rx="7" ry="3.5" fill="#fff"/><ellipse cx="58" cy="94" rx="7" ry="3.5" fill="#fff"/>
+<circle cx="50" cy="30" r="18" fill="#ffd6a5"/>
+<path d="M32 32 Q30 10 50 10 Q70 10 68 32 Q64 20 56 22 Q50 24 42 20 Q36 22 32 32 Z" fill="#2b2b2b"/>
+<circle cx="43" cy="32" r="2.6" fill="#2b2b2b"/><circle cx="57" cy="32" r="2.6" fill="#2b2b2b"/>
+<path d="M44 39 Q50 44 56 39" fill="none" stroke-width="2.5"/>
+<g fill="#ff9aa2" stroke="none"><circle cx="38" cy="37" r="3"/><circle cx="62" cy="37" r="3"/></g>
 """
 
 ICONS["하트"] = """
