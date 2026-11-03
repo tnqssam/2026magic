@@ -136,14 +136,16 @@ body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif;
     with open("print.html", "w", encoding="utf-8") as f:
         f.write(doc("대블 카드 (양면)", "".join(pages)))
     with open("rules.html", "w", encoding="utf-8") as f:
-        f.write(rules_html(htmls[0], htmls[1], cards[0], cards[1]))
+        # 예시: '학교사랑'이 함께 들어 있는 실제 카드 두 장
+        ex = [i for i, c in enumerate(cards) if "학교사랑" in c][:2]
+        f.write(rules_html(htmls[ex[0]], htmls[ex[1]], cards[ex[0]], cards[ex[1]], ex[0] + 1, ex[1] + 1))
     with open("guide.html", "w", encoding="utf-8") as f:
         f.write(doc("대블 그림 도감", guide))
     print(f"print.html: 카드 {len(cards)}장, 앞뒤 {len(pages)}쪽 / guide.html: 그림 도감 1쪽 / rules.html: 게임 방법 1쪽")
 
 
-def rules_html(card_a, card_b, names_a, names_b):
-    """게임 방법 안내 (A4 1쪽). 예시는 실제 1번·2번 카드."""
+def rules_html(card_a, card_b, names_a, names_b, no_a, no_b):
+    """게임 방법 안내 (A4 1쪽). 예시는 실제 카드 두 장."""
     same = (set(names_a) & set(names_b)).pop()
     games = [
         ("1", "같은 그림 찾기", "처음 하는 친구들 연습 놀이", [
@@ -188,17 +190,17 @@ h1 {{ margin: 0; font-size: 13mm; color: #c1121f; font-weight: normal; line-heig
 .lead {{ font-size: 5.2mm; margin-top: 2mm; line-height: 1.35; }}
 .meta {{ display: flex; gap: 2.5mm; margin-top: 3mm; }}
 .meta span {{ background: #fff3c4; border-radius: 3mm; padding: 1mm 3mm; font-size: 4.2mm; }}
-.rule {{ margin-top: 4mm; background: #e7f6ff; border-radius: 4mm; padding: 4mm 5mm; display: flex; align-items: center; gap: 4mm; }}
-.rule .txt {{ flex: 1; font-size: 5mm; line-height: 1.4; }}
+.rule {{ margin-top: 3.5mm; background: #e7f6ff; border-radius: 4mm; padding: 3mm 5mm; display: flex; align-items: center; gap: 4mm; }}
+.rule .txt {{ flex: 1; font-size: 4.8mm; line-height: 1.35; }}
 .rule .txt b {{ color: #c1121f; font-weight: normal; font-size: 6mm; }}
 .ex {{ display: flex; gap: 2mm; }}
-.ex .wrap {{ width: 40.5mm; height: 40.5mm; overflow: hidden; background: #fff; border: 0.3mm solid #aaa; }}
-.ex .card {{ position: relative; width: {CARD}mm; height: {CARD}mm; transform: scale(0.45); transform-origin: 0 0; }}
+.ex .wrap {{ width: 38mm; height: 38mm; overflow: hidden; background: #fff; border: 0.3mm solid #aaa; }}
+.ex .card {{ position: relative; width: {CARD}mm; height: {CARD}mm; transform: scale(0.4222); transform-origin: 0 0; }}
 .ex .no {{ display: none; }}
 .it {{ position: absolute; }}
 .it img {{ width: 100%; height: 100%; object-fit: contain; display: block; }}
 .ex .it:has(img[alt="{same}"]) {{ border-radius: 50%; box-shadow: 0 0 0 1.6mm #ff2d55; }}
-.games {{ display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; margin-top: 4mm; }}
+.games {{ display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-top: 3.5mm; }}
 .game {{ border: 0.6mm solid #ffd23f; border-radius: 4mm; padding: 3mm 4mm; }}
 .gh {{ font-size: 6mm; display: flex; align-items: baseline; gap: 2mm; flex-wrap: wrap; }}
 .num {{ background: #c1121f; color: #fff; border-radius: 50%; width: 7.5mm; height: 7.5mm; display: inline-flex;
@@ -207,7 +209,7 @@ h1 {{ margin: 0; font-size: 13mm; color: #c1121f; font-weight: normal; line-heig
 ol {{ margin: 1.5mm 0 0; padding-left: 5mm; font-size: 4mm; line-height: 1.35; }}
 li {{ margin-bottom: 1mm; }}
 li b {{ color: #c1121f; font-weight: normal; }}
-.tips {{ margin-top: 4mm; background: #f1fbe9; border-radius: 4mm; padding: 3mm 5mm; font-size: 4.2mm; line-height: 1.45; }}
+.tips {{ margin-top: 3.5mm; background: #f1fbe9; border-radius: 4mm; padding: 2.5mm 5mm; font-size: 4.1mm; line-height: 1.38; }}
 .tips h2 {{ margin: 0 0 1mm; font-size: 5.5mm; font-weight: normal; color: #2e7d32; }}
 .tips ul {{ margin: 0; padding-left: 5mm; }}
 """
@@ -218,10 +220,10 @@ li b {{ color: #c1121f; font-weight: normal; }}
 <div class="meta"><span>👥 2~8명</span><span>⏱ 한 판 5분</span><span>🃏 카드 57장</span></div></div></div>
 <div class="rule"><div class="ex"><div class="wrap">{card_a}</div><div class="wrap">{card_b}</div></div>
 <div class="txt">어떤 카드 두 장을 골라도<br>똑같은 그림이 <b>딱 하나</b> 있어요!<br>
-이 두 카드에는 <b>{same}</b>이 똑같아요.<br>같은 그림을 찾으면 <b>이름을 외쳐요.</b></div></div>
+이 두 카드({no_a}번, {no_b}번)에는<br><b>{same}</b>이 똑같아요.<br>같은 그림을 찾으면 <b>이름을 외쳐요.</b></div></div>
 <div class="games">{gl}</div>
 <div class="tips"><h2>🌺 함께 지켜요</h2><ul>
-<li>그림 이름을 말하고 나서 카드를 잡아요. 틀리게 말하면 한 번 쉬어요.</li>
+<li>카드를 잡기 전에 그림 이름을 먼저 외쳐요.</li>\n<li>이름을 틀리게 외치면 그 카드는 못 가져가요. 그리고 다음 카드 한 장이 나올 때까지 쉬어요.</li>
 <li>둘이 동시에 외치면 가위바위보로 정해요.</li>
 <li>카드는 돌려 봐도 괜찮아요. 그림은 여러 방향으로 놓여 있어요.</li>
 <li>이름이 생각나지 않으면 '그림 안내' 종이를 보고 함께 불러요.</li>
