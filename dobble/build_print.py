@@ -77,7 +77,9 @@ def main():
     htmls = [card_html(i + 1, c, rng) for i, c in enumerate(cards)]
     for p in range(0, len(htmls), 6):
         front = htmls[p:p + 6]
-        pages.append(f'<section class="page cards">{"".join(front)}</section>')
+        # 칸이 모자라면 빈 칸으로 채워 앞뒤 모두 3줄 배치를 유지 (위치가 어긋나지 않게)
+        pad = [blank] * (6 - len(front))
+        pages.append(f'<section class="page cards">{"".join(front + pad)}</section>')
         cells = [back] * len(front) + [blank] * (6 - len(front))
         mirrored = [cells[r * 2 + c] for r in range(3) for c in (1, 0)]
         pages.append(f'<section class="page cards">{"".join(mirrored)}</section>')
