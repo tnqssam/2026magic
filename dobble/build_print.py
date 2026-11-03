@@ -61,20 +61,26 @@ def main():
     cards = build_cards()
     pages = []
 
-    # 1쪽: 그림 도감 (1학년 확인용)
+    # 그림 도감 (따로 인쇄)
     cells = "".join(
         f'<div class="cell">{art(s)}<div class="nm">{s}</div></div>' for s in SYMBOLS
     )
-    pages.append(
-        '<section class="page guide"><h1>학교사랑 도블 · 그림 57개</h1>'
+    guide = (
+        '<section class="page guide"><h1>대블 · 그림 57개</h1>'
         '<p>어떤 두 카드를 골라도 같은 그림이 꼭 하나 있어요. 먼저 찾아서 이름을 외치면 이겨요!</p>'
         f'<div class="grid">{cells}</div></section>'
     )
 
-    # 카드 쪽: 한 장에 6장
+    # 양면 인쇄: 앞면 쪽 다음에 뒷면 쪽. 긴 쪽 넘김이면 좌우가 바뀌므로 뒷면은 칸을 좌우 반전
+    back = '<div class="card back"><img src="art/back.webp" alt="대블"></div>'
+    blank = '<div class="card blank"></div>'
     htmls = [card_html(i + 1, c, rng) for i, c in enumerate(cards)]
     for p in range(0, len(htmls), 6):
-        pages.append(f'<section class="page cards">{"".join(htmls[p:p + 6])}</section>')
+        front = htmls[p:p + 6]
+        pages.append(f'<section class="page cards">{"".join(front)}</section>')
+        cells = [back] * len(front) + [blank] * (6 - len(front))
+        mirrored = [cells[r * 2 + c] for r in range(3) for c in (1, 0)]
+        pages.append(f'<section class="page cards">{"".join(mirrored)}</section>')
 
     css = f"""
 @page {{ size: A4; margin: 0; }}
@@ -85,6 +91,9 @@ body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif;
   gap: 0; justify-content: center; align-content: center; }}
 .card {{ position: relative; width: {CARD}mm; height: {CARD}mm; outline: 0.25mm solid #888;
   background: #fff; }}
+.back {{ outline: none; overflow: hidden; }}
+.back img {{ width: 100%; height: 100%; display: block; object-fit: cover; }}
+.blank {{ outline: none; }}
 .no {{ position: absolute; right: 2.2mm; bottom: 1.2mm; font-size: 2.2mm; color: #bbb; }}
 .it {{ position: absolute; }}
 .it img {{ width: 100%; height: 100%; object-fit: contain; display: block; }}
@@ -96,15 +105,17 @@ body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif;
 .cell img {{ width: 18mm; height: 18mm; object-fit: contain; }}
 .nm {{ font-size: 2.9mm; line-height: 1.2; }}
 """
-    html = (
-        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        f"<title>학교사랑 도블 카드</title><style>{css}</style></head>"
-        f'<body>{"".join(pages)}</body></html>'
-    )
-    with open("print.html", "w", encoding="utf-8") as f:
-        f.write(html)
-    print(f"print.html: 도감 1쪽 + 카드 {len(cards)}장 ({math.ceil(len(cards) / 6)}쪽)")
+    def doc(title, body):
+        return (
+            '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+            f"<title>{title}</title><style>{css}</style></head><body>{body}</body></html>"
+        )
 
+    with open("print.html", "w", encoding="utf-8") as f:
+        f.write(doc("대블 카드 (양면)", "".join(pages)))
+    with open("guide.html", "w", encoding="utf-8") as f:
+        f.write(doc("대블 그림 도감", guide))
+    print(f"print.html: 카드 {len(cards)}장, 앞뒤 {len(pages)}쪽 / guide.html: 그림 도감 1쪽")
 
 if __name__ == "__main__":
     main()
