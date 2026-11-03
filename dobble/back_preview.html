@@ -1,0 +1,38 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>대블 뒷면 시안</title>
+<style>
+@font-face{font-family:Jua;src:url(fonts/Jua-Regular.ttf)}
+body{margin:0;padding:8mm;background:#eee;font-family:Jua,sans-serif;display:flex;gap:8mm}
+.wrap{text-align:center;font-size:5mm}
+.b{width:90mm;height:90mm;position:relative;overflow:hidden;margin-bottom:3mm}
+.t{font-family:Jua;line-height:1}
+/* A */
+.A{background:#fff8e7}
+.A .frame{position:absolute;inset:4mm;border:1.2mm solid #b8964e;outline:.4mm solid #b8964e;outline-offset:1.2mm}
+.A img{position:absolute;left:25mm;top:11mm;width:40mm}
+.A .t{position:absolute;left:0;right:0;top:53mm;font-size:22mm;color:#c1121f}
+.A .s{position:absolute;left:0;right:0;top:77mm;font-size:5mm;color:#7a6330}
+/* B */
+.B{background:#d7263d}
+.B .pat{position:absolute;inset:-10mm;display:grid;grid-template-columns:repeat(6,18mm);grid-auto-rows:18mm;transform:rotate(-15deg)}
+.B .pat img{width:12mm;opacity:.35;filter:brightness(2.2) saturate(0)}
+.B .c{position:absolute;left:15mm;top:15mm;width:60mm;height:60mm;border-radius:50%;background:#fff;box-shadow:0 0 0 2mm #ffd23f}
+.B .c img{position:absolute;left:22mm;top:6mm;width:16mm}
+.B .t{position:absolute;left:0;right:0;top:23mm;font-size:21mm;color:#c1121f}
+.B .s{position:absolute;left:0;right:0;top:46mm;font-size:4.5mm;color:#2e7d32}
+/* C */
+.C{background:#e7f6ff}
+.C .ring img{position:absolute;width:15mm;height:15mm;object-fit:contain}
+.C .c{position:absolute;left:22mm;top:22mm;width:46mm;height:46mm;border-radius:50%;background:#fff;border:1.2mm solid #3a86ff}
+.C .t{position:absolute;left:0;right:0;top:9mm;font-size:17mm;color:#c1121f}
+.C .s{position:absolute;left:0;right:0;top:29mm;font-size:4mm;color:#3a86ff}
+</style></head><body>
+<div class="wrap"><div class="b A"><div class="frame"></div><img src="art/03.png"><div class="t">대블</div><div class="s">대흘초등학교</div></div>① 교표형</div>
+<div class="wrap"><div class="b B"><div class="pat" id="pat"></div><div class="c"><img src="art/03.png"><div class="t">대블</div><div class="s">대흘초 도블</div></div></div>② 동백꽃 무늬형</div>
+<div class="wrap"><div class="b C"><div class="ring" id="ring"></div><div class="c"><div class="t">대블</div><div class="s">대흘초 도블</div></div></div>③ 그림 원형</div>
+<script>
+const pat=document.getElementById('pat');
+for(let i=0;i<42;i++){const im=new Image();im.src=i%2?'art/01.png':'art/00.png';pat.appendChild(im)}
+const ring=document.getElementById('ring');
+['01','00','20','36','02','25','44','05'].forEach((n,i)=>{const a=i/8*2*Math.PI-Math.PI/2;const im=new Image();im.src='art/'+n+'.png';
+im.style.left=(45+33*Math.cos(a)-7.5)+'mm';im.style.top=(45+33*Math.sin(a)-7.5)+'mm';ring.appendChild(im)});
+</script></body></html>
