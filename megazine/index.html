@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Me-gazine 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;600;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="megazine.css">
+</head>
+<body>
+
+<!-- ───────── 화면 전용 도구 막대 (인쇄 시 숨김) ───────── -->
+<header class="toolbar no-print">
+  <strong class="tb-logo">Me-gazine</strong>
+  <label class="tb-name">올해의 인물
+    <input id="nameInput" type="text" maxlength="10" placeholder="이름">
+  </label>
+  <span class="tb-hint">글자를 눌러 쓰고, 사진 칸을 눌러 사진을 넣으세요. 자동 저장됩니다.</span>
+  <span class="tb-spacer"></span>
+  <button type="button" id="btnExport">내보내기</button>
+  <button type="button" id="btnImport">불러오기</button>
+  <button type="button" id="btnReset" class="ghost">초기화</button>
+  <button type="button" id="btnPrint" class="primary">인쇄 / PDF</button>
+  <input id="importFile" type="file" accept="application/json" hidden>
+</header>
+
+<main id="book">
+
+<!-- ═════════ 표지 ═════════ -->
+<section class="page cover" data-title="표지">
+  <div class="cover-frame">
+    <div class="photo cover-photo" data-ph="올해의 인물 사진 (상반신, 세로 사진 추천)"></div>
+    <div class="cover-shade"></div>
+    <div class="cover-top">
+      <p class="cover-kicker">나를 엮어 꿈을 펴다</p>
+      <h1 class="masthead">Me-gazine</h1>
+      <p class="cover-issue">VOL. 2026 · SPECIAL EDITION</p>
+    </div>
+    <ul class="cover-teasers">
+      <li><b>PROJECT</b>대흘꿈길,<br>세상을 바꾸는 도전</li>
+      <li><b>BEST 5</b>나를 만든<br>결정적 순간들</li>
+      <li><b>INTERVIEW</b>올해의 인물을<br>만나다</li>
+    </ul>
+    <div class="cover-bottom">
+      <p class="poy">PERSON<br>OF THE YEAR</p>
+      <p class="cover-name"><span class="js-name">ㅇㅇㅇ</span></p>
+      <p class="cover-sub">2026년 올해의 인물 <span class="js-name">ㅇㅇㅇ</span>,<br>그 특별한 이야기를 시작합니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ 0. 목차 ═════════ -->
+<section class="page toc" data-title="목차">
+  <div class="toc-head">
+    <p class="eyebrow">CONTENTS</p>
+    <h2 class="toc-title">목차</h2>
+    <p class="toc-issue">Me-gazine 2026 · 올해의 인물 <span class="js-name">ㅇㅇㅇ</span></p>
+  </div>
+  <div class="toc-body">
+    <ol class="toc-list">
+      <li><span class="no">01</span><span class="t"><b>프롤로그</b>나라는 사람</span><span class="pg">03</span></li>
+      <li><span class="no">02</span><span class="t"><b>프로젝트</b>세상을 바꾸는 도전 — 대흘꿈길</span><span class="pg">04</span></li>
+      <li><span class="no">03</span><span class="t"><b>나의 결정적 순간들</b>지금의 나를 만든 경험 BEST 5</span><span class="pg">06</span></li>
+      <li><span class="no">04</span><span class="t"><b>꿈을 찾는 글쓰기</b>내가 쓴 베스트 5</span><span class="pg">08</span></li>
+      <li><span class="no">05</span><span class="t"><b>Interview</b>올해의 인물 <span class="js-name">ㅇㅇㅇ</span><span class="js-josa" data-j="을를">을</span> 만나다</span><span class="pg">10</span></li>
+      <li><span class="no">06</span><span class="t"><b>앞으로의 나에게</b>6년을 돌아보며 · 중학생이 될 나에게</span><span class="pg">13</span></li>
+      <li><span class="no">07</span><span class="t"><b>에필로그</b>앞으로도 계속될 나의 이야기</span><span class="pg">15</span></li>
+      <li><span class="no">08</span><span class="t"><b>추천사</b>친구들이 보내는 응원과 격려</span><span class="pg">16</span></li>
+    </ol>
+    <aside class="toc-side">
+      <div class="photo toc-photo" data-ph="목차 사진"></div>
+      <p class="toc-editor-label">EDITOR'S NOTE</p>
+      <p class="ed toc-note" data-ph="이 잡지를 만들며 독자에게 하고 싶은 말을 짧게 적어 보세요."></p>
+      <p class="toc-sign">— 편집장 <span class="js-name">ㅇㅇㅇ</span></p>
+    </aside>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>02</span></footer>
+</section>
+
+<!-- ═════════ 1. 프롤로그 ═════════ -->
+<section class="page prologue" data-title="프롤로그">
+  <header class="run"><span>01 PROLOGUE</span><span>나라는 사람</span></header>
+  <div class="opener">
+    <p class="big-no">01</p>
+    <div>
+      <p class="eyebrow red">PROLOGUE</p>
+      <h2 class="sec-title">프롤로그,<br>나라는 사람</h2>
+    </div>
+  </div>
+  <div class="pro-grid">
+    <div class="pro-left">
+      <div class="photo pro-photo" data-ph="나를 잘 보여주는 사진"></div>
+      <table class="profile">
+        <tr><th>이름</th><td><span class="js-name">ㅇㅇㅇ</span></td></tr>
+        <tr><th>소속</th><td class="ed" data-ph="○○초등학교 6학년 ○반"></td></tr>
+        <tr><th>생일</th><td class="ed" data-ph="20○○. ○. ○."></td></tr>
+        <tr><th>별명</th><td class="ed" data-ph="친구들이 부르는 나의 별명"></td></tr>
+        <tr><th>좋아하는 것</th><td class="ed" data-ph="음식, 운동, 노래, 장소…"></td></tr>
+        <tr><th>잘하는 것</th><td class="ed" data-ph="나의 특기"></td></tr>
+      </table>
+    </div>
+    <div class="pro-right">
+      <p class="label">#나를_표현하는_키워드</p>
+      <div class="keywords">
+        <span class="ed chip" data-ph="#키워드1"></span>
+        <span class="ed chip" data-ph="#키워드2"></span>
+        <span class="ed chip" data-ph="#키워드3"></span>
+      </div>
+      <p class="label">나는 이런 사람입니다</p>
+      <div class="ed body dropcap prose" data-ph="나는 어떤 사람인지 소개하는 글을 써 보세요. 성격, 습관, 요즘 빠져 있는 것, 나를 웃게 하는 것, 나를 움직이게 하는 것 등을 자유롭게 적어 봅니다."></div>
+      <blockquote class="pull">
+        <span class="q">“</span><span class="ed" data-ph="나를 가장 잘 표현하는 한 마디"></span>
+      </blockquote>
+    </div>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>03</span></footer>
+</section>
+
+<!-- ═════════ 2. 프로젝트 (1) ═════════ -->
+<section class="page project" data-title="프로젝트 1">
+  <header class="run"><span>02 PROJECT</span><span>세상을 바꾸는 도전</span></header>
+  <div class="feature-hero">
+    <div class="photo hero-photo" data-ph="대흘꿈길 프로젝트 대표 사진"></div>
+    <div class="hero-text">
+      <p class="eyebrow">02 · PROJECT</p>
+      <h2 class="sec-title light">세상을 바꾸는 도전</h2>
+      <p class="hero-sub">대흘꿈길 프로젝트</p>
+    </div>
+  </div>
+  <p class="ed lead" data-ph="리드 문단: 우리가 어떤 문제를 왜 해결하고 싶었는지 2~3문장으로 요약해 보세요."></p>
+  <div class="steps">
+    <article class="step">
+      <p class="step-no">STEP 1</p>
+      <h3>문제 발견</h3>
+      <p class="mini">무엇이 문제였나요? 어디서, 어떻게 발견했나요?</p>
+      <div class="ed body" data-ph="대흘꿈길에서 발견한 문제 상황을 적어 보세요."></div>
+      <div class="photo step-photo" data-ph="문제 상황 사진"></div>
+    </article>
+    <article class="step">
+      <p class="step-no">STEP 2</p>
+      <h3>문제해결 아이디어</h3>
+      <p class="mini">어떤 방법으로 해결하려 했나요?</p>
+      <div class="ed body" data-ph="우리 모둠이 떠올린 아이디어와 그 이유를 적어 보세요."></div>
+      <div class="photo step-photo" data-ph="아이디어 회의 / 스케치 사진"></div>
+    </article>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>04</span></footer>
+</section>
+
+<!-- ═════════ 2. 프로젝트 (2) ═════════ -->
+<section class="page project" data-title="프로젝트 2">
+  <header class="run"><span>02 PROJECT</span><span>대흘꿈길</span></header>
+  <article class="step wide">
+    <p class="step-no">STEP 3</p>
+    <h3>산출물 소개</h3>
+    <div class="out-grid">
+      <div class="photo out-photo" data-ph="산출물 사진 1"></div>
+      <div class="photo out-photo" data-ph="산출물 사진 2"></div>
+      <div class="ed body" data-ph="우리가 만든 산출물은 무엇인가요? 어떻게 만들었고, 어떤 점이 특별한가요?"></div>
+    </div>
+  </article>
+  <article class="step wide">
+    <p class="step-no">STEP 4</p>
+    <h3>배움과 성찰</h3>
+    <div class="two-col">
+      <div>
+        <p class="label">새롭게 배운 것</p>
+        <div class="ed body" data-ph="프로젝트를 하며 알게 된 것, 할 수 있게 된 것"></div>
+      </div>
+      <div>
+        <p class="label">아쉬웠던 점 · 다음에는</p>
+        <div class="ed body" data-ph="잘 안 된 점과 다시 한다면 바꾸고 싶은 점"></div>
+      </div>
+    </div>
+  </article>
+  <div class="reflection">
+    <p class="eyebrow red">REFLECTION · 소감</p>
+    <div class="ed body serif" data-ph="보고서와 성찰문을 참고하여 프로젝트를 마친 소감을 적어 보세요. 이 도전이 나에게, 그리고 우리 동네에 어떤 의미였나요?"></div>
+    <blockquote class="pull small"><span class="q">“</span><span class="ed" data-ph="프로젝트를 한 문장으로 정리한다면?"></span></blockquote>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>05</span></footer>
+</section>
+
+<!-- ═════════ 3. 결정적 순간들 (1) ═════════ -->
+<section class="page moments" data-title="결정적 순간 1">
+  <header class="run"><span>03 MOMENTS</span><span>나의 결정적 순간들</span></header>
+  <div class="opener">
+    <p class="big-no">03</p>
+    <div>
+      <p class="eyebrow red">BEST 5 MOMENTS</p>
+      <h2 class="sec-title">나의 결정적 순간들</h2>
+      <p class="sec-sub">지금의 나를 만든 경험들</p>
+    </div>
+  </div>
+  <article class="moment top">
+    <div class="photo m-photo" data-ph="BEST 1 사진"><span class="rank">1</span></div>
+    <div class="m-text">
+      <p class="m-date ed" data-ph="2026. ○○."></p>
+      <h3 class="ed" data-ph="BEST 1 사건 제목"></h3>
+      <p class="label">그때의 감정</p>
+      <p class="ed feel" data-ph="😆 설렘, 뿌듯함…"></p>
+      <p class="label">기억에 남는 이유</p>
+      <div class="ed body" data-ph="어떤 일이 있었고, 왜 가장 기억에 남는지 적어 보세요."></div>
+    </div>
+  </article>
+  <article class="moment">
+    <div class="photo m-photo" data-ph="BEST 2 사진"><span class="rank">2</span></div>
+    <div class="m-text">
+      <p class="m-date ed" data-ph="2026. ○○."></p>
+      <h3 class="ed" data-ph="BEST 2 사건 제목"></h3>
+      <p class="label">그때의 감정</p>
+      <p class="ed feel" data-ph="당시의 감정"></p>
+      <p class="label">기억에 남는 이유</p>
+      <div class="ed body" data-ph="기억에 남는 이유"></div>
+    </div>
+  </article>
+  <footer class="folio"><span>Me-gazine 2026</span><span>06</span></footer>
+</section>
+
+<!-- ═════════ 3. 결정적 순간들 (2) ═════════ -->
+<section class="page moments" data-title="결정적 순간 2">
+  <header class="run"><span>03 MOMENTS</span><span>지금의 나를 만든 경험들</span></header>
+  <div class="m-grid">
+    <article class="moment card">
+      <div class="photo m-photo" data-ph="BEST 3 사진"><span class="rank">3</span></div>
+      <p class="m-date ed" data-ph="2026. ○○."></p>
+      <h3 class="ed" data-ph="BEST 3 사건 제목"></h3>
+      <p class="label">그때의 감정</p>
+      <p class="ed feel" data-ph="당시의 감정"></p>
+      <p class="label">기억에 남는 이유</p>
+      <div class="ed body" data-ph="기억에 남는 이유"></div>
+    </article>
+    <article class="moment card">
+      <div class="photo m-photo" data-ph="BEST 4 사진"><span class="rank">4</span></div>
+      <p class="m-date ed" data-ph="2026. ○○."></p>
+      <h3 class="ed" data-ph="BEST 4 사건 제목"></h3>
+      <p class="label">그때의 감정</p>
+      <p class="ed feel" data-ph="당시의 감정"></p>
+      <p class="label">기억에 남는 이유</p>
+      <div class="ed body" data-ph="기억에 남는 이유"></div>
+    </article>
+    <article class="moment card">
+      <div class="photo m-photo" data-ph="BEST 5 사진"><span class="rank">5</span></div>
+      <p class="m-date ed" data-ph="2026. ○○."></p>
+      <h3 class="ed" data-ph="BEST 5 사건 제목"></h3>
+      <p class="label">그때의 감정</p>
+      <p class="ed feel" data-ph="당시의 감정"></p>
+      <p class="label">기억에 남는 이유</p>
+      <div class="ed body" data-ph="기억에 남는 이유"></div>
+    </article>
+    <aside class="m-timeline">
+      <p class="eyebrow">MY 2026 TIMELINE</p>
+      <ul>
+        <li><b>3월</b><span class="ed" data-ph="6학년 시작"></span></li>
+        <li><b>5월</b><span class="ed" data-ph="있었던 일"></span></li>
+        <li><b>7월</b><span class="ed" data-ph="있었던 일"></span></li>
+        <li><b>9월</b><span class="ed" data-ph="있었던 일"></span></li>
+        <li><b>11월</b><span class="ed" data-ph="있었던 일"></span></li>
+        <li><b>12월</b><span class="ed" data-ph="있었던 일"></span></li>
+      </ul>
+    </aside>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>07</span></footer>
+</section>
+
+<!-- ═════════ 4. 꿈을 찾는 글쓰기 (1) ═════════ -->
+<section class="page writing" data-title="글쓰기 1">
+  <header class="run"><span>04 WRITING</span><span>꿈을 찾는 글쓰기</span></header>
+  <div class="opener">
+    <p class="big-no">04</p>
+    <div>
+      <p class="eyebrow red">MY BEST 5 WRITINGS</p>
+      <h2 class="sec-title">꿈을 찾는 글쓰기</h2>
+      <p class="sec-sub">내가 쓴 글 중 가장 아끼는 다섯 편</p>
+    </div>
+  </div>
+  <article class="essay feature">
+    <p class="tag">No.1 <span class="ed" data-ph="갈래 (시 · 수필 · 논설문…)"></span></p>
+    <h3 class="ed essay-title" data-ph="첫 번째 글의 제목"></h3>
+    <div class="ed body serif cols dropcap" data-ph="글 본문을 옮겨 적어 보세요."></div>
+    <p class="why"><b>이 글을 고른 이유</b> <span class="ed" data-ph="이 글이 나에게 특별한 이유"></span></p>
+  </article>
+  <article class="essay">
+    <p class="tag">No.2 <span class="ed" data-ph="갈래"></span></p>
+    <h3 class="ed essay-title" data-ph="두 번째 글의 제목"></h3>
+    <div class="ed body serif cols" data-ph="글 본문"></div>
+    <p class="why"><b>이 글을 고른 이유</b> <span class="ed" data-ph="고른 이유"></span></p>
+  </article>
+  <footer class="folio"><span>Me-gazine 2026</span><span>08</span></footer>
+</section>
+
+<!-- ═════════ 4. 꿈을 찾는 글쓰기 (2) ═════════ -->
+<section class="page writing" data-title="글쓰기 2">
+  <header class="run"><span>04 WRITING</span><span>내가 쓴 베스트 5</span></header>
+  <article class="essay">
+    <p class="tag">No.3 <span class="ed" data-ph="갈래"></span></p>
+    <h3 class="ed essay-title" data-ph="세 번째 글의 제목"></h3>
+    <div class="ed body serif cols" data-ph="글 본문"></div>
+    <p class="why"><b>이 글을 고른 이유</b> <span class="ed" data-ph="고른 이유"></span></p>
+  </article>
+  <div class="essay-pair">
+    <article class="essay">
+      <p class="tag">No.4 <span class="ed" data-ph="갈래"></span></p>
+      <h3 class="ed essay-title" data-ph="네 번째 글의 제목"></h3>
+      <div class="ed body serif" data-ph="글 본문"></div>
+      <p class="why"><b>고른 이유</b> <span class="ed" data-ph="고른 이유"></span></p>
+    </article>
+    <article class="essay">
+      <p class="tag">No.5 <span class="ed" data-ph="갈래"></span></p>
+      <h3 class="ed essay-title" data-ph="다섯 번째 글의 제목"></h3>
+      <div class="ed body serif" data-ph="글 본문"></div>
+      <p class="why"><b>고른 이유</b> <span class="ed" data-ph="고른 이유"></span></p>
+    </article>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>09</span></footer>
+</section>
+
+<!-- ═════════ 5. 인터뷰 (1) ═════════ -->
+<section class="page interview" data-title="인터뷰 1">
+  <div class="iv-hero">
+    <div class="photo iv-photo" data-ph="인터뷰 사진 (자연스러운 모습)"></div>
+    <div class="iv-head">
+      <p class="eyebrow">05 · INTERVIEW</p>
+      <h2 class="iv-title">올해의 인물<br><span class="js-name">ㅇㅇㅇ</span><span class="js-josa" data-j="을를">을</span><br>만나다</h2>
+      <p class="ed iv-intro" data-ph="인터뷰 소개글: 인터뷰어(친구/선생님/부모님)가 본 올해의 인물을 소개해 주세요."></p>
+      <p class="iv-by">interviewer <span class="ed" data-ph="인터뷰한 사람"></span></p>
+    </div>
+  </div>
+  <div class="qa">
+    <p class="q"><b>Q1.</b> 2026년, 가장 크게 달라진 점은 무엇인가요? <em>개인적 성장</em></p>
+    <div class="ed a" data-ph="처음에는 어려웠지만 6학년이 되어 할 수 있게 된 것, 실패를 극복한 경험 등"></div>
+  </div>
+  <div class="before-after">
+    <div><p class="ba-l">어제의 나</p><p class="ed" data-ph="3월의 나는 ○○○을 어려워했다."></p></div>
+    <span class="ba-arrow">→</span>
+    <div><p class="ba-l red">오늘의 나</p><p class="ed" data-ph="지금의 나는 ○○○을 할 수 있다."></p></div>
+  </div>
+  <div class="qa">
+    <p class="q"><b>Q2.</b> 올해 처음으로 발견한 자신의 새로운 모습이 있나요? <em>자기 이해</em></p>
+    <div class="ed a" data-ph="새롭게 발견한 나의 능력, 몰랐던 나의 모습"></div>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>10</span></footer>
+</section>
+
+<!-- ═════════ 5. 인터뷰 (2) ═════════ -->
+<section class="page interview" data-title="인터뷰 2">
+  <header class="run"><span>05 INTERVIEW</span><span>내 이야기에 등장한 사람들</span></header>
+  <div class="qa">
+    <p class="q"><b>Q3.</b> 지금의 자신이 있기까지 가장 큰 힘이 되어준 사람은 누구인가요? <em>관계와 감사</em></p>
+    <div class="ed a" data-ph="그 사람은 누구이고, 어떤 순간에 힘이 되어 주었나요?"></div>
+  </div>
+  <div class="people">
+    <p class="eyebrow red">CAST · 내 이야기에 등장한 사람들</p>
+    <p class="mini">누구와 함께했기에 내가 성장할 수 있었을까?</p>
+    <div class="people-grid">
+      <figure><div class="photo face" data-ph="사진"></div><figcaption><b class="ed" data-ph="함께한 친구"></b><span class="ed" data-ph="함께한 일 / 고마운 점"></span></figcaption></figure>
+      <figure><div class="photo face" data-ph="사진"></div><figcaption><b class="ed" data-ph="모둠 친구들"></b><span class="ed" data-ph="모둠 활동에서 배운 것"></span></figcaption></figure>
+      <figure><div class="photo face" data-ph="사진"></div><figcaption><b class="ed" data-ph="토론 상대"></b><span class="ed" data-ph="토론에서 배운 것"></span></figcaption></figure>
+      <figure><div class="photo face" data-ph="사진"></div><figcaption><b class="ed" data-ph="스포츠 팀"></b><span class="ed" data-ph="함께 뛰며 배운 것"></span></figcaption></figure>
+    </div>
+  </div>
+  <div class="qa">
+    <p class="q"><b>Bonus Q.</b> 어떤 일을 할 때 가장 즐겁고 행복한가요? <em>좋아하는 일</em></p>
+    <div class="ed a" data-ph="시간 가는 줄 모르고 하게 되는 일, 그 이유"></div>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>11</span></footer>
+</section>
+
+<!-- ═════════ 5. 인터뷰 (3) ═════════ -->
+<section class="page interview" data-title="인터뷰 3">
+  <header class="run"><span>05 INTERVIEW</span><span>아직 쓰이지 않은 나의 이야기</span></header>
+  <div class="qa">
+    <p class="q"><b>Q4.</b> 올해 가장 후회되는 선택이 있다면 무엇인가요? 그 경험으로 무엇을 배웠나요? <em>성찰</em></p>
+    <div class="ed a" data-ph="후회되는 순간과 그때로 돌아간다면 어떻게 할지, 그리고 배운 점"></div>
+  </div>
+  <blockquote class="pull center"><span class="q">“</span><span class="ed" data-ph="인터뷰에서 가장 기억에 남는 한 마디"></span></blockquote>
+  <div class="qa">
+    <p class="q"><b>Q5.</b> 앞으로 어떤 일을 하며 어떤 사람으로 살아가고 싶나요? <em>미래 · 진로</em></p>
+    <div class="ed a" data-ph="꿈꾸는 직업, 하고 싶은 일, 되고 싶은 사람"></div>
+  </div>
+  <div class="future">
+    <div class="photo future-photo" data-ph="미래의 내 모습 그림 / 사진"></div>
+    <div class="future-card">
+      <p class="eyebrow">아직 쓰이지 않은 나의 이야기</p>
+      <ul>
+        <li><b>20살의 나</b><span class="ed" data-ph="무엇을 하고 있을까?"></span></li>
+        <li><b>30살의 나</b><span class="ed" data-ph="무엇을 하고 있을까?"></span></li>
+        <li><b>꿈의 직업</b><span class="ed" data-ph="장래 희망"></span></li>
+        <li><b>그 꿈을 위해 지금</b><span class="ed" data-ph="오늘부터 할 수 있는 일"></span></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>12</span></footer>
+</section>
+
+<!-- ═════════ 6. 앞으로의 나에게 (1) ═════════ -->
+<section class="page letter-page" data-title="편지 1">
+  <header class="run"><span>06 LETTERS</span><span>앞으로의 나에게</span></header>
+  <div class="opener">
+    <p class="big-no">06</p>
+    <div>
+      <p class="eyebrow red">LETTER TO MYSELF</p>
+      <h2 class="sec-title">앞으로의 나에게</h2>
+    </div>
+  </div>
+  <div class="letter">
+    <p class="letter-head">초등학교 6년을 돌아보며, 나에게</p>
+    <div class="ed letter-body" data-ph="1학년부터 6학년까지 잘 버텨 온 나에게 고마운 점, 칭찬하고 싶은 점, 기억에 남는 일을 편지로 써 보세요."></div>
+    <p class="letter-sign">2026년 ○월 ○일, <span class="js-name">ㅇㅇㅇ</span> 씀</p>
+    <div class="stamp">6<small>YEARS</small></div>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>13</span></footer>
+</section>
+
+<!-- ═════════ 6. 앞으로의 나에게 (2) ═════════ -->
+<section class="page letter-page" data-title="편지 2">
+  <header class="run"><span>06 LETTERS</span><span>중학생이 될 나에게</span></header>
+  <div class="letter tall">
+    <p class="letter-head">중학생이 될 나에게</p>
+    <div class="ed letter-body" data-ph="곧 중학생이 될 나에게 응원, 부탁, 약속하고 싶은 것을 편지로 써 보세요."></div>
+    <p class="letter-sign">초등학교 6학년의 <span class="js-name">ㅇㅇㅇ</span><span class="js-josa" data-j="이가">이가</span></p>
+    <div class="stamp blue">中<small>2027</small></div>
+  </div>
+  <div class="photo polaroid" data-ph="지금의 내 사진"></div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>14</span></footer>
+</section>
+
+<!-- ═════════ 7. 에필로그 ═════════ -->
+<section class="page epilogue" data-title="에필로그">
+  <header class="run light"><span>07 EPILOGUE</span><span>앞으로도 계속될 나의 이야기</span></header>
+  <div class="epi-inner">
+    <p class="eyebrow">07 · EPILOGUE</p>
+    <h2 class="sec-title light">에필로그,<br>앞으로도 계속될<br>나의 이야기</h2>
+    <p class="epi-q">2026년의 나를 한 문장으로 표현한다면?</p>
+    <p class="epi-sentence">
+      “올해의 나는 <span class="ed fill" data-ph="________"></span> 사람이었다.<br>
+      왜냐하면 <span class="ed fill" data-ph="________"></span>.”
+    </p>
+    <div class="ed epi-body" data-ph="잡지를 마무리하며 하고 싶은 이야기를 자유롭게 적어 보세요."></div>
+    <p class="epi-end">To be continued…</p>
+  </div>
+  <footer class="folio light"><span>Me-gazine 2026</span><span>15</span></footer>
+</section>
+
+<!-- ═════════ 8. 추천사 ═════════ -->
+<section class="page recommend" data-title="추천사">
+  <header class="run"><span>08 RECOMMENDATIONS</span><span>친구들이 보내는 응원과 격려</span></header>
+  <div class="opener">
+    <p class="big-no">08</p>
+    <div>
+      <p class="eyebrow red">PRAISE FOR <span class="js-name">ㅇㅇㅇ</span></p>
+      <h2 class="sec-title">추천사</h2>
+      <p class="sec-sub">친구들이 보내는 응원과 격려</p>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note n1"><p class="ed" data-ph="응원의 한 마디"></p><p class="from">— <span class="ed" data-ph="친구 이름"></span></p></div>
+    <div class="note n2"><p class="ed" data-ph="응원의 한 마디"></p><p class="from">— <span class="ed" data-ph="친구 이름"></span></p></div>
+    <div class="note n3"><p class="ed" data-ph="응원의 한 마디"></p><p class="from">— <span class="ed" data-ph="친구 이름"></span></p></div>
+    <div class="note n4"><p class="ed" data-ph="응원의 한 마디"></p><p class="from">— <span class="ed" data-ph="친구 이름"></span></p></div>
+    <div class="note n5"><p class="ed" data-ph="응원의 한 마디"></p><p class="from">— <span class="ed" data-ph="친구 이름"></span></p></div>
+    <div class="note n6"><p class="ed" data-ph="응원의 한 마디"></p><p class="from">— <span class="ed" data-ph="친구 이름"></span></p></div>
+    <div class="note n7"><p class="ed" data-ph="선생님의 한 마디"></p><p class="from">— <span class="ed" data-ph="선생님"></span></p></div>
+    <div class="note n8"><p class="ed" data-ph="가족의 한 마디"></p><p class="from">— <span class="ed" data-ph="가족"></span></p></div>
+  </div>
+  <footer class="folio"><span>Me-gazine 2026</span><span>16</span></footer>
+</section>
+
+<!-- ═════════ 뒤표지 ═════════ -->
+<section class="page back" data-title="뒤표지">
+  <div class="back-inner">
+    <p class="masthead small">Me-gazine</p>
+    <p class="back-copy">나를 엮어 꿈을 펴다</p>
+    <p class="ed back-quote" data-ph="뒤표지에 실을 나의 다짐 한 줄"></p>
+  </div>
+  <div class="back-foot">
+    <div>
+      <p>발행 2026년 12월 · 발행인 <span class="js-name">ㅇㅇㅇ</span></p>
+      <p class="ed" data-ph="○○초등학교 6학년 ○반"></p>
+      <p class="price">정가 : 값을 매길 수 없음</p>
+    </div>
+    <div class="barcode" aria-hidden="true"><span></span><small>9 772026 060612</small></div>
+  </div>
+</section>
+
+</main>
+
+<script src="megazine.js"></script>
+</body>
+</html>
