@@ -29,11 +29,20 @@ body { margin: 0; background: #fff; }
 .cards img:nth-child(2) { left: 125px; top: 10px; z-index: 2; }
 .cards img:nth-child(3) { left: 230px; transform: rotate(14deg); }
 .play .t2 { margin-top: 30px; }
+.head { display: flex; align-items: center; gap: 18px; margin-bottom: 40px; }
+.head img { width: 96px; height: 96px; object-fit: contain; }
+.head span { font-size: 78px; color: #ffd000; -webkit-text-stroke: 14px #5a3a1a; paint-order: stroke fill; }
+.fill { width: 560px; height: 170px; background: #fff; border: 10px solid #5a3a1a; border-radius: 36px; box-sizing: border-box;
+  display: flex; align-items: flex-end; padding: 0 42px 34px; gap: 24px; margin-top: 26px; }
+.fill .line { flex: 1; border-bottom: 6px dashed #c9b27a; height: 1px; }
+.fill .w { font-size: 84px; line-height: 1; color: #5a3a1a; }
 </style></head><body>
 <div class="sq off" id="d1_digital_off"><div class="toggle"><div class="knob"><div class="phone"><span>Zz</span></div></div><div class="lbl">OFF</div></div>
 <div class="t2">디지털 OFF</div><div class="t1">스마트폰은 잠깐 쉬어요</div></div>
 <div class="sq on" id="d2_daily_on"><div class="toggle"><div class="lbl">ON</div><div class="knob"><img src="../art/24.png"></div></div>
-<div class="t2">일상 ON</div><div class="t1">친구 얼굴 보며 웃어요</div></div>
-<div class="sq play" id="d3_play"><div class="cards"><img src="../photocard/front_05.png"><img src="../photocard/back.png"><img src="../photocard/front_09.png"></div>
-<div class="t2">대블 한 판!</div><div class="t1">함께 놀면 더 재밌어요</div></div>
+<div class="t2">일상 ON</div><div class="t1">보드게임을 해볼까요?</div></div>
+<div class="sq play" id="d3_class"><div class="head"><img src="../art/03.png"><span>우리 반 대블</span></div>
+<div class="fill"><div class="line"></div><div class="w">학년</div></div>
+<div class="fill"><div class="line"></div><div class="w">반</div></div>
+</div>
 </body></html>
