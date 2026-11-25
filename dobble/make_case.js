@@ -1,10 +1,10 @@
-// case/small.html -> case/*.jpg (800x800)
+// node make_case.js [case/small.html | case/digital.html] -> case/*.jpg (800x800)
 const { chromium } = require('playwright');
 const path = require('path');
 (async () => {
   const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 800, height: 800 } });
-  await p.goto('file://' + path.resolve(__dirname, 'case/small.html'));
+  await p.goto('file://' + path.resolve(__dirname, process.argv[2] || 'case/small.html'));
   await p.waitForLoadState('networkidle');
   for (const el of await p.$$('.sq')) {
     const id = await el.getAttribute('id');

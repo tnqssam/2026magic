@@ -1,0 +1,39 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>디지털 OFF 일상 ON</title><style>
+@font-face { font-family: Jua; src: url(../fonts/Jua-Regular.ttf); }
+body { margin: 0; background: #fff; }
+.sq { width: 800px; height: 800px; position: relative; overflow: hidden; font-family: Jua, sans-serif;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.off { background: #e9edf2; }
+.on  { background: linear-gradient(#86d6fd 0 70%, #afdd45 70% 100%); }
+.play{ background: #fff3c4; }
+.toggle { width: 470px; height: 230px; border-radius: 115px; position: relative; border: 12px solid #5a3a1a; box-sizing: border-box; }
+.off .toggle { background: #b8c0c9; }
+.on  .toggle { background: #3ccf6e; }
+.knob { position: absolute; top: 12px; width: 182px; height: 182px; border-radius: 50%; background: #fff;
+  border: 10px solid #5a3a1a; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+.off .knob { left: 12px; } .on .knob { right: 12px; }
+.lbl { position: absolute; top: 50%; transform: translateY(-50%); font-size: 64px; color: #fff;
+  -webkit-text-stroke: 10px #5a3a1a; paint-order: stroke fill; }
+.off .lbl { right: 44px; } .on .lbl { left: 50px; }
+.phone { width: 74px; height: 124px; border-radius: 16px; background: #3a3a3a; position: relative; }
+.phone::before { content: ""; position: absolute; left: 8px; top: 12px; right: 8px; bottom: 18px; border-radius: 6px; background: #6b7480; }
+.phone span { position: absolute; left: 0; right: 0; top: 34px; text-align: center; font-size: 34px; color: #fff; }
+.knob img { width: 130px; height: 130px; object-fit: contain; }
+.t2 { margin-top: 44px; font-size: 118px; line-height: 1; color: #ffd000; -webkit-text-stroke: 18px #5a3a1a; paint-order: stroke fill; }
+.off .t2 { color: #fff; }
+.t1 { margin-top: 22px; font-size: 46px; color: #5a3a1a; }
+.cards { position: relative; width: 420px; height: 300px; }
+.cards img { position: absolute; width: 170px; height: 216px; object-fit: cover; border-radius: 14px;
+  border: 6px solid #5a3a1a; box-sizing: content-box; background: #fff; top: 30px; }
+.cards img:nth-child(1) { left: 20px; transform: rotate(-14deg); }
+.cards img:nth-child(2) { left: 125px; top: 10px; z-index: 2; }
+.cards img:nth-child(3) { left: 230px; transform: rotate(14deg); }
+.play .t2 { margin-top: 30px; }
+</style></head><body>
+<div class="sq off" id="d1_digital_off"><div class="toggle"><div class="knob"><div class="phone"><span>Zz</span></div></div><div class="lbl">OFF</div></div>
+<div class="t2">디지털 OFF</div><div class="t1">스마트폰은 잠깐 쉬어요</div></div>
+<div class="sq on" id="d2_daily_on"><div class="toggle"><div class="lbl">ON</div><div class="knob"><img src="../art/24.png"></div></div>
+<div class="t2">일상 ON</div><div class="t1">친구 얼굴 보며 웃어요</div></div>
+<div class="sq play" id="d3_play"><div class="cards"><img src="../photocard/front_05.png"><img src="../photocard/back.png"><img src="../photocard/front_09.png"></div>
+<div class="t2">대블 한 판!</div><div class="t1">함께 놀면 더 재밌어요</div></div>
+</body></html>
