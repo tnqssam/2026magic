@@ -151,6 +151,11 @@ def main():
     infos = rules_cards(as_example(front_list[ex[0]]), as_example(front_list[ex[1]]), ex[0] + 1, ex[1] + 1, same) + guide_cards()
     infos_html = "".join(infos)
     back = '<div class="pc back" id="back"><img src="art/back_inner.png" alt="대블"></div>'
+    # 설명서·그림 안내 카드 전용 뒷면 (그림 카드와 섞여도 바로 골라낼 수 있게)
+    back += ('<div class="pc back_info" id="back_info"><div class="bi">'
+             '<img class="em" src="art/03.png" alt="교표"><div class="bt">대블</div>'
+             '<div class="bs">설명서 · 그림 안내</div>'
+             '<div class="bk"><span>📖</span>먼저 읽어 보세요!</div></div></div>')
     css = f"""
 * {{ box-sizing: border-box; }}
 body {{ margin: 0; background: #ddd; display: flex; flex-wrap: wrap; gap: 6mm; padding: 6mm; }}
@@ -195,6 +200,14 @@ li b {{ color: #c1121f; font-weight: normal; }}
 .tips {{ margin: 0; padding-left: 4mm; font-size: 3.5mm; line-height: 1.45; }}
 .tips li {{ margin-bottom: 1.2mm; }}
 .bye {{ margin-top: auto; background: #f1fbe9; border-radius: 2.5mm; padding: 2.5mm 3mm; font-size: 3.4mm; line-height: 1.4; text-align: center; color: #2e7d32; }}
+.back_info {{ background: #ffd23f; font-family: Jua, sans-serif; }}
+.bi {{ position: absolute; left: {BLEED + SAFE}mm; top: {BLEED + SAFE}mm; width: {TRIM_W - 2 * SAFE}mm;
+  height: {TRIM_H - 2 * SAFE}mm; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}}
+.bi .em {{ width: 24mm; height: 24mm; object-fit: contain; background: #fff; border-radius: 50%; padding: 2.5mm; border: 0.9mm solid #5a3a1a; }}
+.bi .bt {{ font-size: 23mm; line-height: 1; margin-top: 2mm; color: #fff; -webkit-text-stroke: 3mm #5a3a1a; paint-order: stroke fill; }}
+.bi .bs {{ font-size: 5.6mm; margin-top: 3mm; color: #5a3a1a; }}
+.bi .bk {{ margin-top: 7mm; background: #c1121f; color: #fff; border-radius: 3mm; padding: 1.5mm 3.5mm; font-size: 4.2mm; display: flex; gap: 1.5mm; align-items: center; }}
 /* 미리보기용 선: 파일로 저장할 때는 숨김 */
 .guides .pc::after {{ content: ""; position: absolute; left: {BLEED}mm; top: {BLEED}mm; width: {TRIM_W}mm;
   height: {TRIM_H}mm; border: 0.25mm solid #e63946; border-radius: 5mm; }}
@@ -207,7 +220,7 @@ li b {{ color: #c1121f; font-weight: normal; }}
     )
     with open("photocard.html", "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"rules.html: 예시 카드 {ex[0] + 1}번·{ex[1] + 1}번 / photocard.html: 그림 카드 {len(cards)}장 + 설명서 {N_RULES}장 + 그림 안내 {N_GUIDE}장 + 뒷면 1장, 작업 크기 {W:.0f}x{H:.0f}mm")
+    print(f"rules.html: 예시 카드 {ex[0] + 1}번·{ex[1] + 1}번 / photocard.html: 그림 카드 {len(cards)}장 + 설명서 {N_RULES}장 + 그림 안내 {N_GUIDE}장 + 뒷면 2종, 작업 크기 {W:.0f}x{H:.0f}mm")
 
 
 if __name__ == "__main__":

@@ -42,12 +42,20 @@ li b { color: #c1121f; font-weight: normal; }
 .tips { margin: 0; padding-left: 4mm; font-size: 3.5mm; line-height: 1.45; }
 .tips li { margin-bottom: 1.2mm; }
 .bye { margin-top: auto; background: #f1fbe9; border-radius: 2.5mm; padding: 2.5mm 3mm; font-size: 3.4mm; line-height: 1.4; text-align: center; color: #2e7d32; }
+.back_info { background: #ffd23f; font-family: Jua, sans-serif; }
+.bi { position: absolute; left: 6.0mm; top: 6.0mm; width: 62.0mm;
+  height: 82.0mm; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.bi .em { width: 24mm; height: 24mm; object-fit: contain; background: #fff; border-radius: 50%; padding: 2.5mm; border: 0.9mm solid #5a3a1a; }
+.bi .bt { font-size: 23mm; line-height: 1; margin-top: 2mm; color: #fff; -webkit-text-stroke: 3mm #5a3a1a; paint-order: stroke fill; }
+.bi .bs { font-size: 5.6mm; margin-top: 3mm; color: #5a3a1a; }
+.bi .bk { margin-top: 7mm; background: #c1121f; color: #fff; border-radius: 3mm; padding: 1.5mm 3.5mm; font-size: 4.2mm; display: flex; gap: 1.5mm; align-items: center; }
 /* 미리보기용 선: 파일로 저장할 때는 숨김 */
 .guides .pc::after { content: ""; position: absolute; left: 2.0mm; top: 2.0mm; width: 70.0mm;
   height: 90.0mm; border: 0.25mm solid #e63946; border-radius: 5mm; }
 .guides .pc::before { content: ""; position: absolute; left: 6.0mm; top: 6.0mm;
   width: 62.0mm; height: 82.0mm; border: 0.2mm dashed #3a86ff; z-index: 1; }
-</style></head><body><div class="pc back" id="back"><img src="art/back_inner.png" alt="대블"></div><div class="pc info rules" id="rules_1"><div class="safe"><div class="tag">설명서 1/7</div><div class="logo"><img src="art/back_inner.png" alt="대블"></div>
+</style></head><body><div class="pc back" id="back"><img src="art/back_inner.png" alt="대블"></div><div class="pc back_info" id="back_info"><div class="bi"><img class="em" src="art/03.png" alt="교표"><div class="bt">대블</div><div class="bs">설명서 · 그림 안내</div><div class="bk"><span>📖</span>먼저 읽어 보세요!</div></div></div><div class="pc info rules" id="rules_1"><div class="safe"><div class="tag">설명서 1/7</div><div class="logo"><img src="art/back_inner.png" alt="대블"></div>
 <h1>대블 설명서</h1>
 <p class="lead">대흘초 그림 57개가 숨어 있는 카드 놀이예요. 같은 그림을 누가 먼저 찾을까요?</p>
 <div class="meta"><span>👥 2~8명</span><span>⏱ 한 판 5분</span></div>
