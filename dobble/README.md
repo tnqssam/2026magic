@@ -1,5 +1,13 @@
 # 학교사랑 도블 (대흘초등학교)
 
+## 포토카드 주문 (퍼블로그, 70x90mm)
+- `daeble_photocard_70x90.zip`: 앞면 `front_01~57.png` + 뒷면 `back.png`
+- 작업 크기 74x94mm(사방 2mm 재단 여백), 300dpi, 874x1110px
+- 그림은 재단선에서 4mm 안쪽에만 배치 (밀림 1~2mm, 둥근 모서리 5mm 대비)
+- 다시 만들기: `python3 build_print.py && python3 build_photocard.py && node make_photocard.js && node make_pdf.js`
+
+## 예전 A4 인쇄용 (정사각형 9cm)
+
 - 그림 57개, 한 장에 8개, 카드 57장 (9cm 정사각형)
 - 어떤 두 카드를 골라도 같은 그림이 **정확히 1개**
 - `dobble_cards_duplex.pdf`: 양면 인쇄용 카드 (앞면·뒷면 번갈아 20쪽, A4, 긴 쪽 넘김)

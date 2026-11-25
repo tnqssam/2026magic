@@ -135,13 +135,9 @@ body {{ margin: 0; font-family: 'WenQuanYi Zen Hei', 'Noto Sans KR', sans-serif;
 
     with open("print.html", "w", encoding="utf-8") as f:
         f.write(doc("대블 카드 (양면)", "".join(pages)))
-    with open("rules.html", "w", encoding="utf-8") as f:
-        # 예시: '학교사랑'이 함께 들어 있는 실제 카드 두 장
-        ex = [i for i, c in enumerate(cards) if "학교사랑" in c][:2]
-        f.write(rules_html(htmls[ex[0]], htmls[ex[1]], cards[ex[0]], cards[ex[1]], ex[0] + 1, ex[1] + 1))
     with open("guide.html", "w", encoding="utf-8") as f:
         f.write(doc("대블 그림 도감", guide))
-    print(f"print.html: 카드 {len(cards)}장, 앞뒤 {len(pages)}쪽 / guide.html: 그림 도감 1쪽 / rules.html: 게임 방법 1쪽")
+    print(f"print.html: 카드 {len(cards)}장, 앞뒤 {len(pages)}쪽 / guide.html: 그림 도감 1쪽")
 
 
 def rules_html(card_a, card_b, names_a, names_b, no_a, no_b):
@@ -194,8 +190,8 @@ h1 {{ margin: 0; font-size: 13mm; color: #c1121f; font-weight: normal; line-heig
 .rule .txt {{ flex: 1; font-size: 4.8mm; line-height: 1.35; }}
 .rule .txt b {{ color: #c1121f; font-weight: normal; font-size: 6mm; }}
 .ex {{ display: flex; gap: 2mm; }}
-.ex .wrap {{ width: 38mm; height: 38mm; overflow: hidden; background: #fff; border: 0.3mm solid #aaa; }}
-.ex .card {{ position: relative; width: {CARD}mm; height: {CARD}mm; transform: scale(0.4222); transform-origin: 0 0; }}
+.ex .wrap {{ width: 30mm; height: 38.57mm; overflow: hidden; background: #fff; border: 0.3mm solid #aaa; border-radius: 2.2mm; }}
+.ex .pc {{ position: relative; width: 74mm; height: 94mm; transform: scale(0.4286) translate(-2mm, -2mm); transform-origin: 0 0; }}
 .ex .no {{ display: none; }}
 .it {{ position: absolute; }}
 .it img {{ width: 100%; height: 100%; object-fit: contain; display: block; }}
