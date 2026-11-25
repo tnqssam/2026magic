@@ -15,11 +15,17 @@ const PX_H = Math.round(94 / 25.4 * DPI);   // 1110
   const page = await browser.newPage({ viewport: { width: 1200, height: 1200 }, deviceScaleFactor: DPI / 96 });
   await page.goto('file://' + path.resolve(__dirname, 'photocard.html'));
   await page.waitForLoadState('networkidle');
-  const cards = await page.$$('.pc');
+  const cards = await page.$$('body > .pc');  // 설명서 안 예시 카드는 빼고
   for (const c of cards) {
     const id = await c.getAttribute('id');
     const file = path.join(out, id + '.png');
-    await c.screenshot({ path: file });
+    // 이 카드만 화면 왼쪽 위 (0,0)에 두고 정확한 크기로 잘라 찍는다 (가장자리에 다른 색이 섞이지 않게)
+    await page.evaluate(() => document.body.style.background = '#fff');
+    await page.evaluate(() => document.querySelectorAll('body > .pc').forEach(e => e.style.visibility = 'hidden'));
+    await c.evaluate(el => { el.dataset.css = el.style.cssText; el.style.cssText += ';position:fixed;left:0;top:0;z-index:10;visibility:visible'; });
+    await page.screenshot({ path: file, clip: { x: 0, y: 0, width: PX_W / (DPI / 96), height: PX_H / (DPI / 96) } });
+    await c.evaluate(el => { el.style.cssText = el.dataset.css; });
+    await page.evaluate(() => document.querySelectorAll('body > .pc').forEach(e => e.style.visibility = ''));
   }
   // 화면 좌표의 소수점 때문에 1~6px 차이가 나므로 정확한 크기(300dpi)로 맞추고 dpi 정보를 넣는다
   const { execSync } = require('child_process');
