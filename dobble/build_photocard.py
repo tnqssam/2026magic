@@ -54,39 +54,36 @@ def front_html(no, names, rng):
             f'<div class="it" style="left:{x - size / 2:.2f}mm;top:{y - size / 2:.2f}mm;'
             f'width:{size:.2f}mm;height:{size:.2f}mm;transform:rotate({rot:.0f}deg)">{art(name)}</div>'
         )
-    return f'<div class="pc front" id="front_{no:02d}"><span class="no">{no}</span>{"".join(items)}</div>'
+    return f'<div class="pc front" id="front_{no:02d}"><span class="no">{no} / {len(SYMBOLS)}</span>{"".join(items)}</div>'
 
 
+# 공식 도블 놀이 5가지 (규칙은 같게, 문장은 새로 씀)
 GAMES = [
-    ("1", "같은 그림 찾기", "처음 하는 친구 연습 놀이", [
-        "카드 두 장을 앞면이 보이게 가운데에 놓아요.",
-        "두 카드에 똑같이 있는 그림을 찾아 이름을 외쳐요.",
-        "맞힌 친구가 먼저 놓인 카드를 가져가요. 새 카드를 한 장 펼쳐 남은 카드와 비교해요.",
-        "카드가 다 떨어지면 카드를 가장 많이 모은 친구가 이겨요!",
-    ]),
-    ("2", "높이높이 탑 쌓기", "카드를 많이 모으면 이겨요", [
-        "모두 카드를 한 장씩 앞면이 보이게 내 앞에 놓아요. 남은 카드는 앞면이 보이게 가운데에 쌓아요.",
-        "가운데 맨 위 카드와 <b>내 카드</b>에 같은 그림을 찾아 외쳐요.",
-        "맞히면 가운데 카드를 가져와 내 카드 위에 올려요. 이제 그 카드가 내 카드예요.",
-        "가운데 카드가 다 떨어지면 탑이 가장 높은 친구가 이겨요!",
-    ]),
-    ("3", "카드 빨리 버리기", "카드를 먼저 다 없애면 이겨요", [
-        "카드 한 장을 앞면이 보이게 가운데에 놓고, 나머지는 모두 골고루 나눠 가져요.",
-        "내 카드 더미를 뒤집어 맨 위 카드만 보이게 내 앞에 놓아요.",
-        "내 맨 위 카드와 가운데 카드에 같은 그림을 외치고, 내 카드를 가운데에 올려요.",
-        "내 카드를 가장 먼저 다 버린 친구가 이겨요!",
-    ]),
-    ("4", "깜짝 선물 주기", "카드를 적게 가지면 이겨요", [
-        "모두 카드를 한 장씩 앞면이 보이게 내 앞에 놓아요. 남은 카드는 가운데에 쌓아요.",
-        "가운데 맨 위 카드와 <b>친구 카드</b>에 같은 그림을 찾아 외쳐요.",
-        "맞히면 가운데 카드를 그 친구에게 선물해요. 친구 카드 위에 올려 줘요.",
-        "가운데 카드가 다 떨어지면 카드가 가장 적은 친구가 이겨요!",
-    ]),
+    ("1", "탑 쌓기", "카드를 많이 모으면 이겨요",
+     "카드를 섞어 한 사람에게 1장씩 <b>뒷면이 보이게</b> 나눠 줘요. 남은 카드는 <b>앞면이 보이게</b> 가운데에 쌓아요.",
+     "\"시작!\" 하면 모두 자기 카드를 뒤집어요. 가운데 카드와 <b>내 카드</b>에서 같은 그림을 먼저 찾아 외친 사람이 가운데 카드를 가져와 <b>내 카드 위에</b> 올려요. 이제 맨 위 카드가 내 카드예요.",
+     "가운데 카드가 다 떨어지면 끝나요. <b>카드를 가장 많이 모은 사람</b>이 이겨요."),
+    ("2", "우물", "카드를 먼저 다 내려놓으면 이겨요",
+     "카드 1장을 <b>앞면이 보이게</b> 가운데에 놓아요. 남은 카드는 모두에게 <b>골고루</b> 나눠 줘요. 받은 카드는 뒷면이 보이게 쌓아 두었다가, \"시작!\" 하면 더미째 뒤집어요.",
+     "<b>내 맨 위 카드</b>와 가운데 카드에서 같은 그림을 먼저 찾아 외친 사람이 내 카드를 <b>가운데에 내려놓아요</b>. 이제 그 카드가 새 가운데 카드예요.",
+     "<b>내 카드를 가장 먼저 다 내려놓은 사람</b>이 이겨요."),
+    ("3", "뜨거운 감자", "카드를 적게 받으면 이겨요",
+     "여러 판을 해요. 판마다 한 사람에게 카드를 1장씩 뒷면이 보이게 나눠 줘요. 카드는 보지 말고 손에 들어요.",
+     "\"시작!\" 하면 모두 카드를 뒤집어요. <b>내 카드</b>와 <b>친구 카드</b>에서 같은 그림을 먼저 찾아 외친 사람이 내 카드를 <b>그 친구 카드 위에</b> 얹어 줘요. 받은 친구는 맨 위 카드로 다시 찾아 넘겨요.",
+     "그 판의 카드를 <b>모두 받게 된 사람이 그 판에서 져요</b>. 받은 카드는 자기 앞에 두고 다음 판을 해요. 카드가 다 떨어지면 끝나요. <b>모은 카드가 가장 적은 사람</b>이 이겨요."),
+    ("4", "모두 잡아라", "카드를 많이 모으면 이겨요",
+     "여러 판을 해요. 판마다 카드 1장을 <b>뒷면이 보이게</b> 가운데에 놓고, 그 둘레에 카드 9장을 <b>앞면이 보이게</b> 펼쳐요.",
+     "\"시작!\" 하면 가운데 카드를 뒤집어요. 가운데 카드와 <b>둘레 카드 중 하나</b>에서 같은 그림을 먼저 찾아 외친 사람이 <b>그 둘레 카드를 가져가요</b>. 둘레 카드를 다 가져가면 가운데 카드는 상자에 넣고 다음 판을 해요.",
+     "카드가 모자라 새 판을 펼칠 수 없으면 끝나요. <b>카드를 가장 많이 모은 사람</b>이 이겨요."),
+    ("5", "깜짝 선물", "카드를 적게 가지면 이겨요",
+     "한 사람에게 카드를 1장씩 <b>뒷면이 보이게</b> 나눠 줘요. 남은 카드는 <b>앞면이 보이게</b> 가운데에 쌓아요.",
+     "\"시작!\" 하면 모두 자기 카드를 뒤집어요. 가운데 카드와 <b>친구 카드</b>에서 같은 그림을 먼저 찾아 외친 사람이 가운데 카드를 가져가 <b>그 친구 카드 위에</b> 올려 줘요. 원하지 않는 선물을 주는 거예요!",
+     "가운데 카드가 다 떨어지면 끝나요. <b>카드가 가장 적은 사람</b>이 이겨요."),
 ]
 
 GUIDE_PER_CARD = 30  # 3칸 x 10줄 (그림은 작게, 이름은 크게 옆에)
 N_GUIDE = math.ceil(len(SYMBOLS) / GUIDE_PER_CARD)
-N_RULES = 7
+N_RULES = 2 + len(GAMES)
 
 
 def info_card(cid, label, body, cls=""):
@@ -108,31 +105,33 @@ def guide_cards():
 
 
 def rules_cards(ex_a, ex_b, no_a, no_b, same):
-    def game(n, t, sub, steps):
-        return (f'<div class="game"><div class="gh"><span class="num">{n}</span>{t}</div>'
-                f'<div class="sub">{sub}</div><ol>{"".join(f"<li>{s}</li>" for s in steps)}</ol></div>')
+    def game(n, t, goal, prep, how, end):
+        return (f'<div class="gh"><span class="num">{n}</span>{t}</div><div class="goal">{goal}</div>'
+                f'<div class="sec"><span class="k">준비</span><p>{prep}</p></div>'
+                f'<div class="sec"><span class="k">하는 방법</span><p>{how}</p></div>'
+                f'<div class="sec"><span class="k">끝과 승패</span><p>{end}</p></div>')
 
     total = len(SYMBOLS)
     r = []
-    r.append(f"""<div class="logo"><img src="art/back_inner.png" alt="대블"></div>
-<h1>대블 설명서</h1>
-<p class="lead">대흘초 그림 {total}개가 숨어 있는 카드 놀이예요. 같은 그림을 누가 먼저 찾을까요?</p>
+    r.append(f"""<h1>대블 설명서</h1>
+<p class="lead">대블 카드에는 그림이 8개씩 있어요. <b>어떤 카드 두 장을 골라도, 똑같은 그림은 딱 하나</b>예요.
+두 카드에서 같은 그림을 <b>가장 먼저 찾아 이름을 외쳐요!</b></p>
 <div class="meta"><span>👥 2~8명</span><span>⏱ 한 판 5분</span></div>
-<div class="box"><b>들어 있는 것</b><br>그림 카드 {total}장<br>그림 안내 카드 {N_GUIDE}장<br>설명서 카드 {N_RULES}장</div>""")
+<h2>모든 놀이에서 지켜요</h2>
+<ul class="tips">
+<li>그림 <b>이름을 먼저 외치고</b>, 그다음 카드를 움직여요.</li>
+<li>둘이 동시에 외치면 <b>가위바위보</b>로 정해요.</li>
+<li>카드는 돌려 봐도 괜찮아요. 이름이 헷갈리면 <b>그림 안내 카드</b>를 봐요.</li>
+<li>다 놀고 나면 카드를 모두 모아 상자에 넣어요.</li>
+</ul>""")
     r.append(f"""<style>.ex .it:has(img[alt="{same}"]) {{ border-radius: 50%; box-shadow: 0 0 0 1.6mm #ff2d55; }}</style>
-<h2>딱 하나만 같아요!</h2>
-<p class="big">어떤 그림 카드 두 장을 골라도 똑같은 그림이 <b>딱 하나</b> 있어요.</p>
+<h2>처음 하기 전에</h2>
+<p class="big">아무 카드나 2장을 펼치고 다 함께 같은 그림을 찾아 보세요.</p>
 <div class="ex"><div class="wrap">{ex_a}</div><div class="wrap">{ex_b}</div></div>
-<p class="big">{no_a}번, {no_b}번 카드에는 <b>{same}</b>이 똑같아요.<br>같은 그림을 찾으면 <b>이름을 외쳐요!</b></p>""")
+<p class="big">{no_a}번, {no_b}번 카드에는 <b>{same}</b>이 똑같아요!</p>
+<div class="box"><b>들어 있는 것</b><br>그림 카드 {total}장 · 그림 안내 카드 {N_GUIDE}장<br>설명서 카드 {N_RULES}장</div>""")
     for g in GAMES:  # 놀이 하나에 카드 한 장
         r.append(game(*g))
-    r.append("""<h2>🌺 함께 지켜요</h2><ul class="tips">
-<li>카드를 잡기 전에 그림 이름을 먼저 외쳐요.</li>
-<li>이름을 틀리게 외치면 그 카드는 못 가져가요. 그리고 다음 카드 한 장이 나올 때까지 쉬어요.</li>
-<li>둘이 동시에 외치면 가위바위보로 정해요.</li>
-<li>카드는 돌려 봐도 괜찮아요. 그림은 여러 방향으로 놓여 있어요.</li>
-<li>이름이 생각나지 않으면 그림 안내 카드를 보고 함께 불러요.</li>
-</ul><div class="bye">다 놀고 나면 카드를 모두 모아 상자에 넣어 주세요. 고마워요!</div>""")
     return [info_card(f"rules_{i + 1}", f"설명서 {i + 1}/{N_RULES}", body, "rules") for i, body in enumerate(r)]
 
 
@@ -163,7 +162,7 @@ body {{ margin: 0; background: #ddd; display: flex; flex-wrap: wrap; gap: 6mm; p
 .pc {{ position: relative; width: {W}mm; height: {H}mm; overflow: hidden; background: #fff; flex: none; }}
 .it {{ position: absolute; }}
 .it img {{ width: 100%; height: 100%; object-fit: contain; display: block; }}
-.no {{ position: absolute; right: {BLEED + SAFE}mm; bottom: {BLEED + SAFE - 2.5}mm; font: 2.2mm sans-serif; color: #c8c8c8; }}
+.no {{ position: absolute; left: 0; right: 0; bottom: {BLEED + 2.0}mm; text-align: center; font: 1.9mm sans-serif; color: #b5b5b5; }}
 .back {{ background: linear-gradient(#86d6fd 0 50%, #afdd45 50% 100%); }}
 .back img {{ position: absolute; left: 0; top: {(H - W) / 2}mm; width: {W}mm; height: {W}mm; display: block; }}
 @font-face {{ font-family: Jua; src: url(fonts/Jua-Regular.ttf); }}
@@ -177,30 +176,35 @@ body {{ margin: 0; background: #ddd; display: flex; flex-wrap: wrap; gap: 6mm; p
 .gn {{ font-size: 4.0mm; line-height: 1; white-space: nowrap; }}
 .gn.long {{ font-size: 3.2mm; }}
 .rules .logo img {{ width: 22mm; display: block; margin: 1mm auto 0; border-radius: 2mm; }}
-.rules h1 {{ font-size: 8.5mm; color: #c1121f; text-align: center; margin: 1.5mm 0 1mm; font-weight: normal; }}
-.rules h2 {{ font-size: 6mm; color: #c1121f; margin: 2mm 0 1.5mm; font-weight: normal; }}
-.rules .lead {{ font-size: 3.6mm; text-align: center; line-height: 1.35; margin: 0 0 1.5mm; }}
+.rules h1 {{ font-size: 7.5mm; color: #c1121f; text-align: center; margin: 1mm 0 1mm; font-weight: normal; }}
+.rules h2 {{ font-size: 4.8mm; color: #c1121f; margin: 1.8mm 0 1mm; font-weight: normal; }}
+.rules .lead {{ font-size: 3.25mm; text-align: center; line-height: 1.38; margin: 0 0 1.5mm; }}
 .rules .meta {{ display: flex; justify-content: center; gap: 2mm; }}
 .rules .meta span {{ background: #fff3c4; border-radius: 2mm; padding: 0.6mm 2.2mm; font-size: 3.4mm; }}
-.rules .box {{ margin-top: auto; background: #e7f6ff; border-radius: 2.5mm; padding: 1.8mm 3mm; font-size: 3.3mm; line-height: 1.35; text-align: center; }}
+.rules .box {{ margin-top: auto; background: #e7f6ff; border-radius: 2.5mm; padding: 1.2mm 3mm; font-size: 3.3mm; line-height: 1.35; text-align: center; }}
 .rules .box b {{ font-weight: normal; color: #1f4e9e; font-size: 3.8mm; }}
-.rules .big {{ font-size: 3.8mm; line-height: 1.45; margin: 0 0 2mm; }}
+.rules .big {{ font-size: 3.5mm; line-height: 1.4; margin: 0 0 1.5mm; }}
 .rules .big b {{ font-weight: normal; color: #c1121f; }}
-.ex {{ display: flex; justify-content: center; gap: 2mm; margin: 1mm 0 3mm; }}
-.ex .wrap {{ width: 26.6mm; height: 34.2mm; overflow: hidden; background: #fff; border: 0.3mm solid #aaa; border-radius: 2mm; }}
-.ex .pc {{ transform: scale(0.38) translate(-2mm, -2mm); transform-origin: 0 0; }}
+.ex {{ display: flex; justify-content: center; gap: 2mm; margin: 1mm 0 2mm; }}
+.ex .wrap {{ width: 23.8mm; height: 30.6mm; overflow: hidden; background: #fff; border: 0.3mm solid #aaa; border-radius: 2mm; }}
+.ex .pc {{ transform: scale(0.34) translate(-2mm, -2mm); transform-origin: 0 0; }}
 .ex .no {{ display: none; }}
 .game {{ margin-top: 2.5mm; }}
 .game + .game {{ border-top: 0.4mm dashed #ffd23f; padding-top: 2mm; margin-top: 2mm; }}
-.gh {{ font-size: 6mm; display: flex; align-items: center; gap: 1.5mm; }}
+.gh {{ font-size: 5.6mm; display: flex; align-items: center; gap: 1.5mm; }}
 .num {{ background: #c1121f; color: #fff; border-radius: 50%; width: 5.5mm; height: 5.5mm; display: inline-flex;
   align-items: center; justify-content: center; font-size: 3.6mm; }}
 .sub {{ font-size: 3.4mm; color: #888; margin: 1mm 0 2mm; }}
 ol {{ margin: 0; padding-left: 4.5mm; font-size: 3.7mm; line-height: 1.45; }}
 li {{ margin-bottom: 1.6mm; }}
 li b {{ color: #c1121f; font-weight: normal; }}
-.tips {{ margin: 0; padding-left: 4mm; font-size: 3.5mm; line-height: 1.45; }}
-.tips li {{ margin-bottom: 1.2mm; }}
+.goal {{ align-self: flex-start; background: #fff3c4; border-radius: 2mm; padding: 0.5mm 2.2mm; font-size: 3.1mm; margin: 1mm 0 0.6mm; }}
+.sec {{ margin-top: 2.4mm; }}
+.sec .k {{ display: inline-block; background: #1f4e9e; color: #fff; border-radius: 1.5mm; padding: 0.3mm 1.8mm; font-size: 3mm; }}
+.sec p {{ margin: 0.5mm 0 0; font-size: 3mm; line-height: 1.32; }}
+.sec b, .rules .lead b, .tips b {{ color: #c1121f; font-weight: normal; }}
+.tips {{ margin: 0; padding-left: 4mm; font-size: 3.15mm; line-height: 1.34; }}
+.tips li {{ margin-bottom: 1mm; }}
 .bye {{ margin-top: auto; background: #f1fbe9; border-radius: 2.5mm; padding: 2.5mm 3mm; font-size: 3.4mm; line-height: 1.4; text-align: center; color: #2e7d32; }}
 .back_info {{ background: #ffd23f; font-family: Jua, sans-serif; }}
 .bi {{ position: absolute; left: {BLEED + SAFE}mm; top: {BLEED + SAFE}mm; width: {TRIM_W - 2 * SAFE}mm;
