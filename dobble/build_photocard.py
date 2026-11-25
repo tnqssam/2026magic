@@ -84,7 +84,7 @@ GAMES = [
     ]),
 ]
 
-GUIDE_PER_CARD = 15  # 3칸 x 5줄
+GUIDE_PER_CARD = 30  # 3칸 x 10줄 (그림은 작게, 이름은 크게 옆에)
 N_GUIDE = math.ceil(len(SYMBOLS) / GUIDE_PER_CARD)
 N_RULES = 7
 
@@ -100,7 +100,8 @@ def guide_cards():
     out = []
     for k in range(N_GUIDE):
         names = SYMBOLS[k * GUIDE_PER_CARD:(k + 1) * GUIDE_PER_CARD]
-        cells = "".join(f'<div class="gc">{art(n)}<div class="gn">{n}</div></div>' for n in names)
+        cells = "".join(
+            f'<div class="gc">{art(n)}<div class="gn{" long" if len(n) >= 5 else ""}">{n}</div></div>' for n in names)
         out.append(info_card(f"guide_{k + 1}", f"그림 안내 {k + 1}/{N_GUIDE}",
                              f'<div class="ggrid">{cells}</div>', "guide"))
     return out
@@ -170,10 +171,11 @@ body {{ margin: 0; background: #ddd; display: flex; flex-wrap: wrap; gap: 6mm; p
 .safe {{ position: absolute; left: {BLEED + SAFE}mm; top: {BLEED + SAFE}mm; width: {TRIM_W - 2 * SAFE}mm;
   height: {TRIM_H - 2 * SAFE}mm; display: flex; flex-direction: column; }}
 .tag {{ align-self: flex-start; background: #c1121f; color: #fff; border-radius: 2mm; padding: 0.5mm 2.2mm; font-size: 3mm; }}
-.ggrid {{ flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr); gap: 0.8mm; margin-top: 1.5mm; }}
-.gc {{ display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border-radius: 2mm; }}
-.gc img {{ width: 11mm; height: 9.5mm; object-fit: contain; }}
-.gn {{ font-size: 3.3mm; line-height: 1.1; margin-top: 0.4mm; text-align: center; }}
+.ggrid {{ flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(10, 1fr); gap: 0.6mm; margin-top: 1.5mm; }}
+.gc {{ display: flex; align-items: center; gap: 0.7mm; background: #fff; border-radius: 1.5mm; padding: 0 0.6mm; min-width: 0; }}
+.gc img {{ width: 5.6mm; height: 5.6mm; object-fit: contain; flex: none; }}
+.gn {{ font-size: 4.0mm; line-height: 1; white-space: nowrap; }}
+.gn.long {{ font-size: 3.2mm; }}
 .rules .logo img {{ width: 22mm; display: block; margin: 1mm auto 0; border-radius: 2mm; }}
 .rules h1 {{ font-size: 8.5mm; color: #c1121f; text-align: center; margin: 1.5mm 0 1mm; font-weight: normal; }}
 .rules h2 {{ font-size: 6mm; color: #c1121f; margin: 2mm 0 1.5mm; font-weight: normal; }}
